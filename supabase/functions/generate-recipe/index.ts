@@ -9,11 +9,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    console.log('API key present:', !!apiKey, 'length:', apiKey?.length ?? 0)
+    const env = Deno.env.toObject()
+    const apiKey = Object.entries(env).find(([k]) => k.trim() === 'ANTHROPIC_API_KEY')?.[1]?.trim()
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: 'ANTHROPIC_API_KEY secret is not set in Edge Function environment' }),
+        JSON.stringify({ error: 'ANTHROPIC_API_KEY not found. Keys: ' + Object.keys(env).join(', ') }),
         { status: 500, headers: { ...corsHeaders, 'content-type': 'application/json' } }
       )
     }
