@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #0D0D0D;
+  --color-bg-card: #1A1A1A;
+  --color-bg-elevated: #242424;
+  --color-accent-orange: #FF6B35;
+  --color-accent-gold: #FFB800;
+  --color-accent-green: #4CAF7D;
+  --color-accent-red: #FF4444;
+  --color-text-primary: #F5F5F0;
+  --color-text-muted: #888880;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+:root {
+  --bg-primary:    #0D0D0D;
+  --bg-card:       #1A1A1A;
+  --bg-elevated:   #242424;
+  --accent-orange: #FF6B35;
+  --accent-gold:   #FFB800;
+  --accent-green:  #4CAF7D;
+  --accent-red:    #FF4444;
+  --text-primary:  #F5F5F0;
+  --text-muted:    #888880;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: #0D0D0D;
+  color: #F5F5F0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1A1A1A; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #FF6B35; }
+
+/* Masonry grid */
+.masonry-grid {
+  columns: 3;
+  column-gap: 1rem;
+}
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+@media (max-width: 1024px) {
+  .masonry-grid { columns: 2; }
+}
+@media (max-width: 640px) {
+  .masonry-grid { columns: 1; }
+}
+
+/* Arc gauge animation */
+.arc-gauge-fill {
+  transition: stroke-dashoffset 1s ease-in-out;
+}
+
+/* Cook mode slide-up panel */
+.slide-up-panel {
+  transform: translateY(100%);
+  transition: transform 0.3s ease-in-out;
+}
+.slide-up-panel.open {
+  transform: translateY(0);
+}
+
+/* AI glow badge */
+.ai-badge-glow {
+  box-shadow: 0 0 12px rgba(255, 184, 0, 0.3);
+}
+
+/* Chip input */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  color: #FF6B35;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 13px;
+}
