@@ -9,13 +9,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { ingredients, dietary, allergens } = await req.json()
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    console.log('API key present:', !!apiKey, 'length:', apiKey?.length ?? 0)
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: 'ANTHROPIC_API_KEY secret is not set in Edge Function environment' }),
+        { status: 500, headers: { ...corsHeaders, 'content-type': 'application/json' } }
+      )
+    }
+
+    const body = await req.json()
+    const { ingredients, dietary, allergens } = body
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey!,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },
@@ -46,12 +55,16 @@ Deno.serve(async (req) => {
       }),
     })
 
+    const responseText = await response.text()
+
     if (!response.ok) {
-      const err = await response.text()
-      throw new Error(`Anthropic error: ${err}`)
+      return new Response(
+        JSON.stringify({ error: `Anthropic API error ${response.status}: ${responseText}` }),
+        { status: 500, headers: { ...corsHeaders, 'content-type': 'application/json' } }
+      )
     }
 
-    const data = await response.json()
+    const data = JSON.parse(responseText)
     const text = data.content[0].text.trim()
     const recipes = JSON.parse(text)
 
@@ -59,7 +72,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'content-type': 'application/json' },
     })
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
+    return new Response(JSON.stringify({ error: String(e) }), {
       status: 500,
       headers: { ...corsHeaders, 'content-type': 'application/json' },
     })
