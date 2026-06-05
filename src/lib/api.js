@@ -4,7 +4,7 @@ export async function generateRecipe({ ingredients, dietary, allergens }) {
   const { data, error } = await supabase.functions.invoke('generate-recipe', {
     body: { ingredients, dietary, allergens },
   })
-  if (error) throw error
+  if (error) throw new Error(data?.error || error.message)
   return data
 }
 
