@@ -38,7 +38,7 @@ export default function Generate() {
       })
       setRecipes(result.recipes ?? [])
     } catch (e) {
-      setError('Generation failed. Check your connection and try again.')
+      setError(e.message || 'Generation failed. Check your connection and try again.')
     } finally {
       setLoading(false)
     }
