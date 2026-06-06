@@ -124,13 +124,13 @@ export default function Generate() {
 
     if (error) { addToast('Failed to save recipe', 'error'); return }
 
+    // Fetch image BEFORE navigating so recipe detail shows correct photo immediately
+    addToast('Finding the perfect photo...', 'info')
+    const imgUrl = await getRecipeImage({ title: recipe.title, cuisine: recipe.cuisine })
+    if (imgUrl) await supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
+
     addToast('Recipe saved! ✨', 'success')
     navigate(`/recipe/${data.id}`)
-
-    // Auto-lookup and store image in background
-    getRecipeImage({ title: recipe.title, cuisine: recipe.cuisine }).then(imgUrl => {
-      if (imgUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
-    })
   }
 
   return (
