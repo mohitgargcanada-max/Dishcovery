@@ -9,6 +9,7 @@ import DietTag from '../components/ui/DietTag'
 import { DIET_TAGS } from '../utils/constants'
 import { useNavigate } from 'react-router-dom'
 import { formatTime } from '../utils/helpers'
+import { getImageByTitle } from '../utils/foodImages'
 
 const MODES = [
   { id: 'ingredients', label: 'By Ingredients', icon: Tag },
@@ -107,6 +108,7 @@ export default function Generate() {
       cook_time: recipe.cook_time,
       serving_size: recipe.serving_size,
       ai_diet_tags: recipe.diet_tags ?? [],
+      photo_url: getImageByTitle(recipe.title),
       is_published: true,
     }).select().single()
     if (!error) {

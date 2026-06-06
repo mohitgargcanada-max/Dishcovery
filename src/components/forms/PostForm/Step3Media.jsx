@@ -25,7 +25,11 @@ export default function Step3Media({ data, onChange }) {
     setGenerating(true)
     setGenError(null)
     try {
-      const result = await generateImage({ title: data.title, cuisine: data.cuisine_type })
+      const result = await generateImage({
+        title: data.title,
+        cuisine: data.cuisine_type,
+        ingredients: data.ingredients?.slice(0, 5).map(i => i.item).join(', ')
+      })
       setPreview(result.url)
       update('photo_url', result.url)
       update('photo_file', null)

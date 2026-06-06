@@ -25,9 +25,9 @@ export async function adaptRecipe({ recipe, targetDiet, allergens }) {
   return data
 }
 
-export async function generateImage({ title, cuisine }) {
+export async function generateImage({ title, cuisine, ingredients }) {
   const { data, error } = await supabase.functions.invoke('generate-image', {
-    body: { title, cuisine },
+    body: { title, cuisine, ingredients },
   })
   if (error) throw new Error(error.message)
   if (data?.error) throw new Error(data.error)
