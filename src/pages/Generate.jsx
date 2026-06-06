@@ -9,7 +9,7 @@ import DietTag from '../components/ui/DietTag'
 import { DIET_TAGS } from '../utils/constants'
 import { useNavigate } from 'react-router-dom'
 import { formatTime } from '../utils/helpers'
-import { getImageByTitle } from '../utils/foodImages'
+import { lookupRecipeImage } from '../utils/recipeImageLookup'
 
 const MODES = [
   { id: 'ingredients', label: 'By Ingredients', icon: Tag },
@@ -126,6 +126,11 @@ export default function Generate() {
 
     addToast('Recipe saved! ✨', 'success')
     navigate(`/recipe/${data.id}`)
+
+    // Auto-lookup and store image in background
+    lookupRecipeImage(recipe.title, recipe.cuisine, data.id).then(imgUrl => {
+      if (imgUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
+    })
   }
 
   return (
