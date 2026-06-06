@@ -70,10 +70,12 @@ export default function Generate() {
     setError(null)
     setRecipes([])
     try {
+      const count = mode === 'natural' ? detectCount(nlQuery) : 3
       const result = await generateRecipe({
         ingredients: finalIngredients,
         dietary: finalDietary,
         allergens: finalAllergens,
+        count,
         ...(mode === 'natural' ? { freeform: nlQuery } : {}),
       })
       setRecipes(result.recipes ?? [])
@@ -82,6 +84,13 @@ export default function Generate() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function detectCount(q) {
+    const l = q.toLowerCase()
+    if (/\b(one|1|a single|just one|only one)\b.*recipe/.test(l) || /recipe.*\b(one|1)\b/.test(l)) return 1
+    if (/\b(two|2)\b.*recipe/.test(l) || /recipe.*\b(two|2)\b/.test(l)) return 2
+    return 3
   }
 
   function parseNaturalQuery(q) {
@@ -197,10 +206,10 @@ export default function Generate() {
             {mode === 'ingredients'
               ? ingredients.length < 2
                 ? `Add ${2 - ingredients.length} more ingredient${ingredients.length === 1 ? '' : 's'} to auto-generate`
-                : '✨ Auto-generating in 15 seconds — or press Generate now'
+                : '🧑‍🍳 Auto-generating in 15 seconds — or hit Dishcover It!'
               : nlQuery.trim().length < 15
-              ? 'Keep typing — AI will generate automatically'
-              : '✨ Auto-generating in 15 seconds — or press Generate now'}
+              ? 'Keep typing — AI will Dishcover recipes for you automatically'
+              : '🧑‍🍳 Auto-generating in 15 seconds — or hit Dishcover It!'}
           </p>
         )}
 
@@ -211,8 +220,10 @@ export default function Generate() {
         >
           {loading ? (
             <><Loader2 size={16} className="animate-spin" /> Dishcovery AI is cooking...</>
+          ) : recipes.length > 0 ? (
+            <><Sparkles size={16} /> Remix the Magic ✨</>
           ) : (
-            <><Sparkles size={16} /> {recipes.length > 0 ? 'Regenerate' : 'Generate 3 Recipes'}</>
+            <>🧑‍🍳 Dishcover It!</>
           )}
         </button>
       </div>

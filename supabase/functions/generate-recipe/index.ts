@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json()
-    const { ingredients, dietary, allergens, freeform } = body
+    const { ingredients, dietary, allergens, freeform, count = 3 } = body
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
             content: `${freeform ? `<user_request>${freeform}</user_request>\n` : ''}<ingredients>${ingredients.join(', ')}</ingredients>
 <dietary>${dietary.join(', ') || 'none'}</dietary>
 <exclude_allergens>${allergens.join(', ') || 'none'}</exclude_allergens>
-<task>Generate 3 distinct, delicious recipes${freeform ? ' that match the user\'s request' : ' using these ingredients'}. Carefully honour all dietary preferences and completely exclude every listed allergen — this is important for the user\'s health and wellbeing. Make each recipe feel special and approachable.</task>
+<task>Generate exactly ${count} distinct, delicious recipe${count > 1 ? 's' : ''}${freeform ? ' that match the user request' : ' using these ingredients'}. Honour all dietary preferences. Completely exclude every listed allergen. Make each recipe feel special and approachable.</task>
 <format>[{
   "title": string,
   "description": string (2 sentences),

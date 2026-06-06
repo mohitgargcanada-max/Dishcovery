@@ -1,8 +1,8 @@
 import { supabase } from './supabase'
 
-export async function generateRecipe({ ingredients, dietary, allergens }) {
+export async function generateRecipe({ ingredients, dietary, allergens, freeform, count = 3 }) {
   const { data, error } = await supabase.functions.invoke('generate-recipe', {
-    body: { ingredients, dietary, allergens },
+    body: { ingredients, dietary, allergens, freeform, count },
   })
   if (error) throw new Error(error.message)
   if (data?.error) throw new Error(data.error)
