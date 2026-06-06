@@ -49,9 +49,9 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })
     }
 
-    // Get ALL recipes — replace every image with correct Unsplash photo
+    // Only process recipes with no photo or TheMealDB images (wrong/missing)
     const res = await fetch(
-      `${supabaseUrl}/rest/v1/recipes?select=id,title,cuisine_type`,
+      `${supabaseUrl}/rest/v1/recipes?or=(photo_url.is.null,photo_url.like.*themealdb*)&select=id,title,cuisine_type`,
       { headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` } }
     )
     const recipes = await res.json()
