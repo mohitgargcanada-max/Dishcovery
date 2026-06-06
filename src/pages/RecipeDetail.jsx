@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore'
 import { useUIStore } from '../store/uiStore'
 import AIScoreCard from '../components/recipe/AIScoreCard'
 import StepsBurner from '../components/ui/StepsBurner'
+import { scoreRecipe } from '../lib/api'
 import AllergenBadge from '../components/ui/AllergenBadge'
 import DietTag from '../components/ui/DietTag'
 import AdaptModal from '../components/recipe/AdaptModal'
@@ -55,9 +56,32 @@ export default function RecipeDetail() {
     if (result.cooked) addToast('Marked as cooked! 🍳', 'success')
   }
 
-  function handleAdaptResult({ adapted, changes }) {
+  async function handleAdaptResult({ adapted, changes }) {
+    // Show adapted recipe immediately
     setAdaptedRecipe({ ...recipe, ...adapted })
-    addToast(`Recipe adapted: ${changes}`, 'success')
+    addToast(`Recipe adapted! Re-scoring nutrition...`, 'success')
+
+    // Re-score with new ingredients/steps to update calories & nutrition
+    try {
+      const scores = await scoreRecipe({
+        title: adapted.title || recipe.title,
+        ingredients: adapted.ingredients || recipe.ingredients,
+        steps: adapted.steps || recipe.steps,
+        cuisine: recipe.cuisine_type,
+      })
+      if (scores && !scores.error) {
+        setAdaptedRecipe(prev => ({
+          ...prev,
+          ai_nutrition_score: scores.nutrition_score,
+          ai_difficulty_score: scores.difficulty_score,
+          ai_authenticity_score: scores.authenticity_score,
+          ai_calories_per_serving: scores.calories_per_serving,
+          ai_diet_tags: scores.diet_tags ?? prev.ai_diet_tags,
+          allergens: scores.allergen_warnings ?? prev.allergens,
+        }))
+        addToast('✨ Nutrition updated for adapted recipe', 'success')
+      }
+    } catch { /* keep original scores */ }
   }
 
   return (
@@ -141,11 +165,11 @@ export default function RecipeDetail() {
       )}
 
       {/* AI Score */}
-      <AIScoreCard recipe={recipe} />
+      <AIScoreCard recipe={displayed} />
 
       {/* Steps to burn */}
-      {recipe.ai_calories_per_serving && (
-        <StepsBurner calories={recipe.ai_calories_per_serving} />
+      {displayed.ai_calories_per_serving && (
+        <StepsBurner calories={displayed.ai_calories_per_serving} />
       )}
 
       {/* Ingredients */}
