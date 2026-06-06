@@ -6,6 +6,7 @@ import { useSaveRecipe, useSaveStatus, useCookedThis } from '../hooks/useSaves'
 import { useAuthStore } from '../store/authStore'
 import { useUIStore } from '../store/uiStore'
 import AIScoreCard from '../components/recipe/AIScoreCard'
+import StepsBurner from '../components/ui/StepsBurner'
 import AllergenBadge from '../components/ui/AllergenBadge'
 import DietTag from '../components/ui/DietTag'
 import AdaptModal from '../components/recipe/AdaptModal'
@@ -138,6 +139,11 @@ export default function RecipeDetail() {
 
       {/* AI Score */}
       <AIScoreCard recipe={recipe} />
+
+      {/* Steps to burn */}
+      {recipe.ai_calories_per_serving && (
+        <StepsBurner calories={recipe.ai_calories_per_serving} />
+      )}
 
       {/* Ingredients */}
       <div className="mt-6">

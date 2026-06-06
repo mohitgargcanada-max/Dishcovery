@@ -26,9 +26,47 @@ const DEFAULTS = {
   photo_url: null,
 }
 
+function isSpam(text) {
+  if (!text) return false
+  const t = text.trim()
+  if (t.length < 3) return true
+  // Repeated characters: aaaa, xxxx
+  if (/(.)\1{4,}/.test(t)) return true
+  // All special chars / numbers only
+  if (/^[^a-zA-Z]+$/.test(t)) return true
+  // Too many consecutive spaces or gibberish
+  if (/\s{3,}/.test(t)) return true
+  return false
+}
+
+function validateStep(step, data) {
+  if (step === 0) {
+    if (!data.title || data.title.trim().length < 3)
+      return 'Please enter a recipe title (at least 3 characters)'
+    if (isSpam(data.title))
+      return 'Recipe title looks invalid — please enter a real dish name'
+    if (data.description && isSpam(data.description))
+      return 'Description looks invalid — please describe your dish properly'
+    return null
+  }
+  if (step === 1) {
+    if (data.ingredients.length === 0)
+      return 'Please add at least one ingredient'
+    if (data.steps.length === 0)
+      return 'Please add at least one cooking step'
+    const badIngredient = data.ingredients.find((i) => isSpam(i.item) || !i.item?.trim())
+    if (badIngredient) return 'One or more ingredients look invalid — please check them'
+    const badStep = data.steps.find((s) => isSpam(s) || !s?.trim() || s.trim().length < 5)
+    if (badStep) return 'One or more steps look too short or invalid'
+    return null
+  }
+  return null
+}
+
 export default function PostForm() {
   const [step, setStep] = useState(0)
   const [data, setData] = useState(DEFAULTS)
+  const [stepError, setStepError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [aiStatus, setAiStatus] = useState(null)
   const { user } = useAuthStore()
@@ -138,6 +176,14 @@ export default function PostForm() {
         )}
       </div>
 
+      {/* Step validation error */}
+      {stepError && (
+        <div className="mt-3 flex items-start gap-2 p-3 bg-red-900/20 border border-red-700/30 rounded-xl text-red-400 text-sm">
+          <span className="text-base leading-none">⚠️</span>
+          <span>{stepError}</span>
+        </div>
+      )}
+
       {/* Navigation */}
       <div className="flex gap-3 mt-4">
         {step > 0 && (
@@ -148,7 +194,12 @@ export default function PostForm() {
         )}
         <div className="flex-1" />
         {step < STEPS.length - 1 ? (
-          <button onClick={() => setStep(step + 1)}
+          <button onClick={() => {
+            const err = validateStep(step, data)
+            if (err) { setStepError(err); return }
+            setStepError(null)
+            setStep(step + 1)
+          }}
             className="flex items-center gap-2 px-6 py-2.5 bg-[#FF6B35] text-white rounded-xl font-medium hover:bg-[#e55a25] transition-colors">
             Next <ChevronRight size={16} />
           </button>
