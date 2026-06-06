@@ -8,35 +8,36 @@ function pickFallback(id, cuisine) {
   return pool[hash % pool.length]
 }
 
+function isTrusted(url) {
+  return !!(url && (
+    url.includes('supabase.co/storage') ||
+    url.includes('images.unsplash.com') ||
+    url.includes('themealdb.com') ||
+    url.includes('www.themealdb.com')
+  ))
+}
+
 const cache = {}
 
 export function useRecipeImage(recipe) {
-  const url = recipe?.photo_url
-  const trusted = url && (
-    url.includes('supabase.co/storage') ||
-    url.includes('images.unsplash.com') ||
-    url.includes('themealdb.com')
-  ) ? url : null
-
-  const [imgSrc, setImgSrc] = useState(
-    trusted ?? pickFallback(recipe?.id, recipe?.cuisine_type)
-  )
+  const [dynamicSrc, setDynamicSrc] = useState(null)
 
   useEffect(() => {
-    if (trusted || !recipe?.id || !recipe?.title) return
+    const url = recipe?.photo_url
+    if (isTrusted(url) || !recipe?.id || !recipe?.title) return
+
     const key = recipe.id
+    if (cache[key]) { setDynamicSrc(cache[key]); return }
 
-    if (cache[key]) { setImgSrc(cache[key]); return }
-
-    // Show cuisine fallback immediately, upgrade when TheMealDB resolves
-    const fallback = pickFallback(recipe.id, recipe.cuisine_type)
-    setImgSrc(fallback)
-
-    lookupRecipeImage(recipe.title, recipe.cuisine_type, recipe.id).then(url => {
-      cache[key] = url
-      setImgSrc(url)
+    lookupRecipeImage(recipe.title, recipe.cuisine_type, recipe.id).then(result => {
+      if (result) {
+        cache[key] = result
+        setDynamicSrc(result)
+      }
     })
-  }, [recipe?.id])
+  }, [recipe?.id, recipe?.photo_url])
 
-  return imgSrc
+  // Always prefer trusted DB photo over dynamic lookup
+  const trusted = isTrusted(recipe?.photo_url) ? recipe.photo_url : null
+  return trusted ?? dynamicSrc ?? pickFallback(recipe?.id, recipe?.cuisine_type)
 }
