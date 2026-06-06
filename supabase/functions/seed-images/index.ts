@@ -29,10 +29,11 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })
     }
 
-    // Get all recipes with no photo
-    const res = await fetch(`${supabaseUrl}/rest/v1/recipes?photo_url=is.null&select=id,title,cuisine_type`, {
-      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-    })
+    // Get ALL recipes — replace every image with correct Unsplash photo
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/recipes?select=id,title,cuisine_type`,
+      { headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` } }
+    )
     const recipes = await res.json()
 
     const results = []

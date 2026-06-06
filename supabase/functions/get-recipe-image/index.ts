@@ -14,7 +14,17 @@ Deno.serve(async (req) => {
     }
 
     const { title, cuisine } = await req.json()
-    const query = encodeURIComponent(`${title} ${cuisine || ''} food dish`.trim())
+
+    // Strip adjectives, keep core dish keywords for better Unsplash results
+    const SKIP = new Set(['zesty','classic','easy','quick','crispy','creamy','spicy','grilled',
+      'roasted','baked','fried','slow','cooked','homemade','simple','perfect','ultimate',
+      'best','loaded','stuffed','smoky','tangy','sweet','savory','hearty','fresh',
+      'lemon','garlic','herb','butter','honey','pepper','chili','ginger','lime','citrus'])
+    const coreWords = title.split(/\s+/)
+      .filter(w => w.length > 2 && !SKIP.has(w.toLowerCase()))
+      .slice(-3).join(' ')
+    const searchTitle = coreWords || title.split(' ').slice(-2).join(' ')
+    const query = encodeURIComponent(`${searchTitle} ${cuisine || ''} food`.trim())
 
     const r = await fetch(
       `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape&content_filter=high`,
