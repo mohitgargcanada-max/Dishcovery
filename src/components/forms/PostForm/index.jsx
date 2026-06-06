@@ -141,7 +141,7 @@ export default function PostForm() {
       // Auto-lookup image if none uploaded
       if (!photoUrl) {
         lookupRecipeImage(recipe.title, data.cuisine_type, recipe.id).then(imgUrl => {
-          if (imgUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', recipe.id)
+          if (imgUrl && !photoUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', recipe.id)
         })
       }
 

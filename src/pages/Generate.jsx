@@ -129,7 +129,7 @@ export default function Generate() {
 
     // Auto-lookup and store image in background
     lookupRecipeImage(recipe.title, recipe.cuisine, data.id).then(imgUrl => {
-      if (imgUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
+      if (imgUrl && !data.photo_url) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
     })
   }
 
