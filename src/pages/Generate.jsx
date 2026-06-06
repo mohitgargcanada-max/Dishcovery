@@ -10,6 +10,13 @@ import { DIET_TAGS } from '../utils/constants'
 import { useNavigate } from 'react-router-dom'
 import { formatTime } from '../utils/helpers'
 import { lookupRecipeImage } from '../utils/recipeImageLookup'
+import { CUISINE_PHOTOS } from '../utils/cuisinePhotos'
+
+function getCuisineFallback(id, cuisine) {
+  const pool = CUISINE_PHOTOS[cuisine] ?? CUISINE_PHOTOS.default
+  const hash = id ? id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) : 0
+  return pool[hash % pool.length]
+}
 
 const MODES = [
   { id: 'ingredients', label: 'By Ingredients', icon: Tag },
@@ -133,7 +140,8 @@ export default function Generate() {
     ])
 
     const updates = {}
-    if (imgUrl) updates.photo_url = imgUrl
+    // Use Unsplash if available, otherwise guaranteed cuisine-matched fallback
+    updates.photo_url = imgUrl || getCuisineFallback(data.id, recipe.cuisine)
     if (scores && !scores.error) {
       updates.ai_nutrition_score = scores.nutrition_score
       updates.ai_difficulty_score = scores.difficulty_score
