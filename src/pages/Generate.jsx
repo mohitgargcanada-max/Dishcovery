@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Sparkles, Loader2, Plus, Bookmark, ArrowLeft, MessageSquare, Tag } from 'lucide-react'
-import { generateRecipe } from '../lib/api'
+import { generateRecipe, generateImage } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { useUIStore } from '../store/uiStore'
@@ -97,6 +97,8 @@ export default function Generate() {
 
   async function handleSave(recipe) {
     if (!user) { addToast('Sign in to save', 'error'); return }
+
+    // 1. Insert recipe first
     const { data, error } = await supabase.from('recipes').insert({
       user_id: user.id,
       title: recipe.title,
@@ -108,14 +110,29 @@ export default function Generate() {
       cook_time: recipe.cook_time,
       serving_size: recipe.serving_size,
       ai_diet_tags: recipe.diet_tags ?? [],
-      photo_url: getImageByTitle(recipe.title),
       is_published: true,
     }).select().single()
-    if (!error) {
-      addToast('Recipe saved! ✨', 'success')
-      navigate(`/recipe/${data.id}`)
-    } else {
-      addToast('Failed to save recipe', 'error')
+
+    if (error) { addToast('Failed to save recipe', 'error'); return }
+
+    addToast('Recipe saved! Generating image...', 'info')
+    navigate(`/recipe/${data.id}`)
+
+    // 2. Generate AI image in background and update recipe
+    try {
+      const imgResult = await generateImage({
+        title: recipe.title,
+        cuisine: recipe.cuisine,
+        ingredients: recipe.ingredients?.slice(0, 5).map(i => i.item).join(', '),
+      })
+      if (imgResult?.url) {
+        await supabase.from('recipes')
+          .update({ photo_url: imgResult.url })
+          .eq('id', data.id)
+        addToast('✨ AI photo ready!', 'success')
+      }
+    } catch {
+      // Silently fail — TheMealDB fallback will show something
     }
   }
 

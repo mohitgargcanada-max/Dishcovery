@@ -1,63 +1,73 @@
 import { useEffect, useState } from 'react'
 
-// Extract the core dish name for Wikipedia lookup
-// "Classic Lamb Biryani" → "Biryani", "Chicken Teriyaki Bowl" → "Teriyaki"
-function getSearchTerm(title) {
-  if (!title) return null
-  const stop = new Set(['classic','easy','quick','homemade','simple','best',
-    'street','style','creamy','spicy','crispy','grilled','roasted','baked','fried',
-    'with','and','the','a','an','in','of','bowl','wrap','salad','soup','stew'])
-  const words = title.toLowerCase().split(/\s+/).filter(w => !stop.has(w) && w.length > 2)
-  // Try last 2 meaningful words first, then just last word
-  return words.slice(-2).join(' ') || words[words.length - 1] || title
+const cache = {}
+
+const SKIP = new Set(['classic','easy','quick','homemade','simple','best','street',
+  'style','creamy','spicy','crispy','grilled','roasted','baked','fried','with',
+  'and','the','a','an','bowl','wrap','plate','loaded','ultimate','perfect',
+  'authentic','traditional','healthy','slow','cooked','pan','seared','stuffed'])
+
+function extractDishName(title) {
+  if (!title) return title
+  return title.toLowerCase()
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !SKIP.has(w))
+    .join(' ') || title.toLowerCase()
 }
 
-const imageCache = {}
+// Source 1: TheMealDB - purpose-built food database, free, no key
+async function tryMealDB(title) {
+  const terms = extractDishName(title).split(' ')
+  for (let i = terms.length; i >= 1; i--) {
+    const q = terms.slice(-i).join(' ')
+    try {
+      const r = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q)}`)
+      const d = await r.json()
+      if (d?.meals?.[0]?.strMealThumb) return d.meals[0].strMealThumb
+    } catch { /* try next */ }
+  }
+  return null
+}
+
+// Source 2: Unsplash Source - search-based, still works, good food photos
+function unsplashUrl(title) {
+  const term = encodeURIComponent(extractDishName(title) + ' food dish')
+  return `https://source.unsplash.com/600x400/?${term}`
+}
+
+const FALLBACKS = [
+  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80',
+  'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&q=80',
+  'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
+  'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80',
+  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
+]
 
 export function useRecipeImage(recipe) {
-  const [imgSrc, setImgSrc] = useState(
-    recipe?.photo_url?.includes('supabase.co/storage') ? recipe.photo_url : null
-  )
+  const userPhoto = recipe?.photo_url?.includes('supabase.co/storage') ? recipe.photo_url : null
+  const [imgSrc, setImgSrc] = useState(userPhoto)
 
   useEffect(() => {
-    if (imgSrc) return
-    if (!recipe?.title) return
+    if (userPhoto || !recipe?.title) return
+    const key = recipe.title.toLowerCase()
+    if (cache[key]) { setImgSrc(cache[key]); return }
 
-    const term = getSearchTerm(recipe.title)
-    if (!term) return
-
-    // Check in-memory cache
-    if (imageCache[term]) {
-      setImgSrc(imageCache[term])
-      return
-    }
-
-    // Fetch from Wikipedia Summary API — free, no key required
-    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`)
-      .then(r => r.json())
-      .then(data => {
-        const url = data?.thumbnail?.source || data?.originalimage?.source
-        if (url) {
-          // Upscale Wikipedia thumbnails
-          const hqUrl = url.replace(/\/\d+px-/, '/600px-')
-          imageCache[term] = hqUrl
-          setImgSrc(hqUrl)
-        }
-      })
-      .catch(() => null)
+    tryMealDB(recipe.title).then(url => {
+      if (url) {
+        cache[key] = url
+        setImgSrc(url)
+      } else {
+        // Fallback to Unsplash Source search — returns dish-relevant photo
+        const fallback = unsplashUrl(recipe.title)
+        cache[key] = fallback
+        setImgSrc(fallback)
+      }
+    })
   }, [recipe?.title])
 
-  // Fallback: generic food images varied by recipe id
   if (!imgSrc) {
-    const fallbacks = [
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80',
-      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&q=80',
-      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
-      'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80',
-    ]
-    const idx = parseInt(recipe?.id?.slice(-1) ?? '0', 16) % fallbacks.length
-    return fallbacks[idx]
+    const idx = parseInt(recipe?.id?.slice(-1) ?? '0', 16) % FALLBACKS.length
+    return FALLBACKS[idx]
   }
 
   return imgSrc
