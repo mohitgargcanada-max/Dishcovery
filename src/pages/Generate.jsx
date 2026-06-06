@@ -40,7 +40,7 @@ export default function Generate() {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       handleGenerate()
-    }, 1500)
+    }, 15000)
 
     return () => clearTimeout(debounceRef.current)
   }, [ingredients, nlQuery, mode])
@@ -195,10 +195,10 @@ export default function Generate() {
             {mode === 'ingredients'
               ? ingredients.length < 2
                 ? `Add ${2 - ingredients.length} more ingredient${ingredients.length === 1 ? '' : 's'} to auto-generate`
-                : '✨ Auto-generating in a moment...'
+                : '✨ Auto-generating in 15 seconds — or press Generate now'
               : nlQuery.trim().length < 15
               ? 'Keep typing — AI will generate automatically'
-              : '✨ Auto-generating in a moment...'}
+              : '✨ Auto-generating in 15 seconds — or press Generate now'}
           </p>
         )}
 

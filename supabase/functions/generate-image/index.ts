@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
     const { title, cuisine } = await req.json()
 
-    const prompt = `Professional food photography of ${title}, ${cuisine || 'international'} cuisine, beautifully plated on a rustic wooden table, natural soft window lighting, overhead shot, shallow depth of field, appetizing, high resolution, restaurant quality, warm tones`
+    const prompt = `Close-up professional food photography of "${title}", ${cuisine || 'international'} cuisine dish, served on an elegant plate, garnished and beautifully presented, soft natural side lighting, bokeh background, ultra-realistic, appetizing, Michelin star restaurant style, 4K, food magazine cover quality. The dish is clearly "${title}" — not a generic food photo.`
 
     const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
       method: 'POST',

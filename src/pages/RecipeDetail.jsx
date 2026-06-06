@@ -11,7 +11,7 @@ import DietTag from '../components/ui/DietTag'
 import AdaptModal from '../components/recipe/AdaptModal'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import { formatTime, timeAgo } from '../utils/helpers'
-import { CUISINE_IMAGES } from '../utils/constants'
+import { getRecipeImage, CUISINE_IMAGES } from '../utils/constants'
 
 export default function RecipeDetail() {
   const { id } = useParams()
@@ -67,11 +67,11 @@ export default function RecipeDetail() {
       {/* Hero image */}
       <div className="rounded-2xl overflow-hidden mb-4 h-64">
         <img
-          src={recipe.photo_url || CUISINE_IMAGES[recipe.cuisine_type] || CUISINE_IMAGES.default}
+          src={getRecipeImage(recipe)}
           alt={recipe.title}
           className="w-full h-full object-cover"
           loading="lazy"
-          onError={(e) => { e.target.src = CUISINE_IMAGES.default }}
+          onError={(e) => { e.target.src = CUISINE_IMAGES.default[0] }}
         />
       </div>
 

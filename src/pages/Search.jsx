@@ -31,11 +31,15 @@ export default function Search() {
         .eq('is_published', true)
         .limit(30)
 
-      if (filters.keywords?.length) {
-        dbQuery = dbQuery.ilike('title', `%${filters.keywords[0]}%`)
+      const hasKeyword = filters.keywords?.length > 0
+
+      // Keyword search across title AND description
+      if (hasKeyword) {
+        const kw = filters.keywords[0]
+        dbQuery = dbQuery.or(`title.ilike.%${kw}%,description.ilike.%${kw}%,cuisine_type.ilike.%${kw}%`)
       }
       if (filters.cuisine) {
-        dbQuery = dbQuery.ilike('cuisine_type', filters.cuisine)
+        dbQuery = dbQuery.ilike('cuisine_type', `%${filters.cuisine}%`)
       }
       if (filters.max_calories) {
         dbQuery = dbQuery.lte('ai_calories_per_serving', filters.max_calories)
@@ -44,14 +48,15 @@ export default function Search() {
         dbQuery = dbQuery.lte('cook_time', filters.max_time)
       }
 
-      // User's dietary preferences — STRICT: each must be present in recipe tags
+      // Only apply strict dietary filter if user typed a diet-specific query (not a food keyword)
       const userDiets = profile?.taste_profile?.diets ?? []
-      for (const diet of userDiets) {
-        dbQuery = dbQuery.contains('ai_diet_tags', [diet])
-      }
-
-      // AI-parsed diet tags from the search query — additive hint
-      if (filters.diet_tags?.length) {
+      if (!hasKeyword && userDiets.length) {
+        // No keyword — enforce diet preferences strictly
+        for (const diet of userDiets) {
+          dbQuery = dbQuery.contains('ai_diet_tags', [diet])
+        }
+      } else if (filters.diet_tags?.length) {
+        // Keyword search — use AI-parsed diet tags as soft filter
         dbQuery = dbQuery.overlaps('ai_diet_tags', filters.diet_tags)
       }
 

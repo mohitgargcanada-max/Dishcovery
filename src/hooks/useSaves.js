@@ -29,15 +29,24 @@ export function useSaveRecipe() {
         .maybeSingle()
 
       if (existing) {
-        await supabase.from('user_saves').delete().eq('id', existing.id)
+        const { error } = await supabase.from('user_saves').delete().eq('id', existing.id)
+        if (error) throw error
         return { saved: false }
       } else {
-        await supabase.from('user_saves').insert({ user_id: userId, recipe_id: recipeId, is_favourite: isFavourite })
+        const { error } = await supabase
+          .from('user_saves')
+          .insert({ user_id: userId, recipe_id: recipeId, is_favourite: isFavourite })
+        if (error) throw error
         return { saved: true }
       }
     },
-    onSuccess: (_, { userId }) => {
+    onSuccess: (_, { userId, recipeId }) => {
       qc.invalidateQueries({ queryKey: ['saves', userId] })
+      qc.invalidateQueries({ queryKey: ['save-status', userId, recipeId] })
+      qc.invalidateQueries({ queryKey: ['recipes'] })
+    },
+    onError: (error) => {
+      console.error('Save error:', error)
     },
   })
 }
@@ -51,11 +60,10 @@ export function useCookedThis() {
         .select('id')
         .eq('user_id', userId)
         .eq('recipe_id', recipeId)
-        .single()
+        .maybeSingle()
 
       if (!existing) {
         await supabase.from('cooked_this').insert({ user_id: userId, recipe_id: recipeId })
-        await supabase.rpc('increment_cooked', { recipe_id: recipeId }).catch(() => null)
       }
       return { cooked: !existing }
     },
