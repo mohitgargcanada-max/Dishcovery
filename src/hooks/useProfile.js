@@ -1,19 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 
-export function useProfile(username) {
+export function useProfile(usernameOrId) {
   return useQuery({
-    queryKey: ['profile', username],
+    queryKey: ['profile', usernameOrId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try by username first
+      const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', username)
-        .single()
+        .eq('username', usernameOrId)
+        .maybeSingle()
+      if (data) return data
+
+      // Fall back to UUID lookup
+      const { data: byId, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', usernameOrId)
+        .maybeSingle()
       if (error) throw error
-      return data
+      if (!byId) throw new Error('User not found')
+      return byId
     },
-    enabled: !!username,
+    enabled: !!usernameOrId,
   })
 }
 
