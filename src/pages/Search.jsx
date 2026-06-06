@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Search as SearchIcon, Loader2, X } from 'lucide-react'
+import { Search as SearchIcon, Loader2, X, Info } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { smartSearch } from '../lib/api'
 import { useAuthStore } from '../store/authStore'
@@ -11,7 +11,7 @@ export default function Search() {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [parsed, setParsed] = useState(null)
-  const { user } = useAuthStore()
+  const { user, profile } = useAuthStore()
 
   const runSearch = useCallback(async (q) => {
     if (!q.trim()) { setResults([]); setParsed(null); return }
@@ -43,8 +43,18 @@ export default function Search() {
       if (filters.max_time) {
         dbQuery = dbQuery.lte('cook_time', filters.max_time)
       }
-      if (filters.diet_tags?.length) {
-        dbQuery = dbQuery.overlaps('ai_diet_tags', filters.diet_tags)
+
+      // Merge AI-parsed diet tags with user's own dietary preferences
+      const userDiets = profile?.taste_profile?.diets ?? []
+      const allDiets = [...new Set([...(filters.diet_tags ?? []), ...userDiets])]
+      if (allDiets.length) {
+        dbQuery = dbQuery.overlaps('ai_diet_tags', allDiets)
+      }
+
+      // Always exclude user's allergens
+      const userAllergens = profile?.allergens ?? []
+      if (userAllergens.length) {
+        dbQuery = dbQuery.not('allergens', 'ov', `{${userAllergens.join(',')}}`)
       }
 
       const { data, error } = await dbQuery
@@ -55,7 +65,7 @@ export default function Search() {
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [user?.id, profile])
 
   // Debounce
   useEffect(() => {
@@ -109,10 +119,22 @@ export default function Search() {
         <EmptyState icon="🔍" title="No recipes found" description={`No results for "${query}". Try different keywords.`} />
       )}
 
+      {/* Active dietary filter notice */}
+      {profile?.taste_profile?.diets?.length > 0 && (
+        <div className="mb-4 flex items-center gap-2 text-xs text-[#888880] bg-[#1A1A1A] border border-white/5 rounded-xl px-3 py-2">
+          <Info size={13} className="text-[#4CAF7D] flex-shrink-0" />
+          Showing results matching your dietary preferences:
+          {profile.taste_profile.diets.map((d) => (
+            <span key={d} className="text-[#4CAF7D] capitalize">{d}</span>
+          ))}
+        </div>
+      )}
+
       {!query && (
         <div className="text-center py-16 text-[#888880]">
           <SearchIcon size={40} className="mx-auto mb-3 opacity-30" />
           <p className="text-sm">Search with natural language — AI understands your query</p>
+          <p className="text-xs mt-1 opacity-60">Your dietary preferences are applied automatically</p>
         </div>
       )}
 

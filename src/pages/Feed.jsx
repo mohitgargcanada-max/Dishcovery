@@ -18,7 +18,8 @@ export default function Feed() {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useRecipes(
     tab,
-    profile?.taste_profile
+    profile?.taste_profile,
+    profile?.allergens ?? []
   )
 
   const recipes = data?.pages.flatMap((p) => p) ?? []

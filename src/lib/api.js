@@ -25,6 +25,15 @@ export async function adaptRecipe({ recipe, targetDiet, allergens }) {
   return data
 }
 
+export async function generateImage({ title, cuisine }) {
+  const { data, error } = await supabase.functions.invoke('generate-image', {
+    body: { title, cuisine },
+  })
+  if (error) throw new Error(error.message)
+  if (data?.error) throw new Error(data.error)
+  return data
+}
+
 export async function smartSearch({ query, userId }) {
   const { data, error } = await supabase.functions.invoke('smart-search', {
     body: { query, userId },

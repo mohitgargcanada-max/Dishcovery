@@ -23,6 +23,7 @@ const DEFAULTS = {
   steps: [],
   allergens: [],
   photo_file: null,
+  photo_url: null,
 }
 
 export default function PostForm() {
@@ -43,8 +44,8 @@ export default function PostForm() {
     }
     setSubmitting(true)
     try {
-      // 1. Upload photo
-      let photoUrl = null
+      // 1. Upload photo (file upload) or use AI-generated URL directly
+      let photoUrl = data.photo_url || null
       if (data.photo_file) {
         const { data: uploadData, error } = await uploadRecipeImage(supabase, data.photo_file, user.id)
         if (!error && uploadData?.path) {

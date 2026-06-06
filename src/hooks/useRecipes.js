@@ -3,9 +3,9 @@ import { supabase } from '../lib/supabase'
 
 const PAGE_SIZE = 12
 
-export function useRecipes(tab = 'trending', tasteProfile = null) {
+export function useRecipes(tab = 'trending', tasteProfile = null, userAllergens = []) {
   return useInfiniteQuery({
-    queryKey: ['recipes', tab, tasteProfile],
+    queryKey: ['recipes', tab, tasteProfile, userAllergens],
     queryFn: async ({ pageParam = 0 }) => {
       let query = supabase
         .from('recipes')
@@ -15,8 +15,16 @@ export function useRecipes(tab = 'trending', tasteProfile = null) {
 
       if (tab === 'trending') {
         query = query.order('save_count', { ascending: false })
-      } else if (tab === 'foryou' && tasteProfile?.cuisines?.length) {
-        query = query.in('cuisine_type', tasteProfile.cuisines).order('created_at', { ascending: false })
+      } else if (tab === 'foryou') {
+        // Filter by user's preferred cuisines
+        if (tasteProfile?.cuisines?.length) {
+          query = query.in('cuisine_type', tasteProfile.cuisines)
+        }
+        // Filter by user's dietary preferences (must match at least one tag)
+        if (tasteProfile?.diets?.length) {
+          query = query.overlaps('ai_diet_tags', tasteProfile.diets)
+        }
+        query = query.order('save_count', { ascending: false })
       } else {
         query = query.order('created_at', { ascending: false })
       }

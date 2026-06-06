@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Sparkles, Loader2, Plus, Bookmark, ArrowLeft, MessageSquare, Tag } from 'lucide-react'
 import { generateRecipe } from '../lib/api'
 import { supabase } from '../lib/supabase'
@@ -27,6 +27,23 @@ export default function Generate() {
   const { user, profile } = useAuthStore()
   const addToast = useUIStore((s) => s.addToast)
   const navigate = useNavigate()
+  const debounceRef = useRef(null)
+
+  // Auto-generate as user types (debounced)
+  useEffect(() => {
+    const canAutoGenerate =
+      (mode === 'ingredients' && ingredients.length >= 2) ||
+      (mode === 'natural' && nlQuery.trim().length >= 15)
+
+    if (!canAutoGenerate) return
+
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      handleGenerate()
+    }, 1500)
+
+    return () => clearTimeout(debounceRef.current)
+  }, [ingredients, nlQuery, mode])
 
   function toggleDiet(tag) {
     setDietary((d) => d.includes(tag) ? d.filter((t) => t !== tag) : [...d, tag])
@@ -172,15 +189,42 @@ export default function Generate() {
           </>
         )}
 
-        <button onClick={handleGenerate} disabled={loading || (mode === 'ingredients' && ingredients.length === 0) || (mode === 'natural' && !nlQuery.trim())}
-          className="w-full py-3 bg-[#FF6B35] text-white rounded-xl font-medium disabled:opacity-40 hover:bg-[#e55a25] transition-colors flex items-center justify-center gap-2">
+        {/* Auto-generate hint */}
+        {!loading && recipes.length === 0 && (
+          <p className="text-center text-xs text-[#888880]">
+            {mode === 'ingredients'
+              ? ingredients.length < 2
+                ? `Add ${2 - ingredients.length} more ingredient${ingredients.length === 1 ? '' : 's'} to auto-generate`
+                : '✨ Auto-generating in a moment...'
+              : nlQuery.trim().length < 15
+              ? 'Keep typing — AI will generate automatically'
+              : '✨ Auto-generating in a moment...'}
+          </p>
+        )}
+
+        <button
+          onClick={handleGenerate}
+          disabled={loading || (mode === 'ingredients' && ingredients.length === 0) || (mode === 'natural' && !nlQuery.trim())}
+          className="w-full py-3 bg-[#FF6B35] text-white rounded-xl font-medium disabled:opacity-40 hover:bg-[#e55a25] transition-colors flex items-center justify-center gap-2"
+        >
           {loading ? (
             <><Loader2 size={16} className="animate-spin" /> Dishcovery AI is cooking...</>
           ) : (
-            <><Sparkles size={16} /> Generate 3 Recipes</>
+            <><Sparkles size={16} /> {recipes.length > 0 ? 'Regenerate' : 'Generate 3 Recipes'}</>
           )}
         </button>
       </div>
+
+      {loading && (
+        <div className="mt-4 p-4 bg-[#FFB800]/5 border border-[#FFB800]/20 rounded-xl flex items-center gap-3">
+          <span className="text-2xl animate-bounce">👨‍🍳</span>
+          <div>
+            <p className="text-[#FFB800] text-sm font-medium">Dishcovery AI is cooking...</p>
+            <p className="text-[#888880] text-xs mt-0.5">Crafting 3 personalised recipes for you</p>
+          </div>
+          <Loader2 size={18} className="ml-auto text-[#FFB800] animate-spin" />
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 p-3 bg-red-900/20 border border-red-700/30 rounded-xl text-red-400 text-sm">{error}</div>
