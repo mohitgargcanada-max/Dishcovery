@@ -27,7 +27,6 @@ export default function AIScoreCard({ recipe }) {
       <div className="flex justify-around">
         <ArcGauge score={ai_nutrition_score} label="Nutrition" size={90} />
         <ArcGauge score={ai_difficulty_score} label="Difficulty" size={90} />
-        <ArcGauge score={ai_authenticity_score} label="Authenticity" size={90} />
       </div>
 
       {ai_diet_tags.length > 0 && (
