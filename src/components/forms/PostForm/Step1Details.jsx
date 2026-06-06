@@ -5,6 +5,12 @@ export default function Step1Details({ data, onChange }) {
 
   return (
     <div className="space-y-4">
+      {/* Image tip */}
+      <div className="flex items-start gap-2 p-3 bg-[#FFB800]/10 border border-[#FFB800]/20 rounded-xl text-xs text-[#FFB800]">
+        <span className="text-base leading-none">💡</span>
+        <span>A clear title like <strong>"Lamb Biryani"</strong> or <strong>"Shakshuka"</strong> helps AI find the perfect photo for your recipe automatically.</span>
+      </div>
+
       <div>
         <label className="block text-sm text-[#888880] mb-1.5">Recipe Title *</label>
         <input
