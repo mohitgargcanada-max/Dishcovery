@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Share2, Twitter, MessageCircle, Link, Check } from 'lucide-react'
+import { Share2, MessageCircle, Link, Check, ExternalLink } from 'lucide-react'
 
 export default function ShareButton({ recipe }) {
   const [copied, setCopied] = useState(false)
@@ -45,7 +45,7 @@ export default function ShareButton({ recipe }) {
           </a>
           <a href={twitter} target="_blank" rel="noreferrer"
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#F5F5F0] hover:bg-white/5 transition-colors">
-            <Twitter size={15} className="text-sky-400" /> Twitter / X
+            <span className="text-sky-400 font-bold text-sm">𝕏</span> Twitter / X
           </a>
           <a href={facebook} target="_blank" rel="noreferrer"
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#F5F5F0] hover:bg-white/5 transition-colors">
