@@ -12,7 +12,7 @@ import DietTag from '../components/ui/DietTag'
 import AdaptModal from '../components/recipe/AdaptModal'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import { formatTime, timeAgo } from '../utils/helpers'
-import { getRecipeImage, CUISINE_IMAGES } from '../utils/constants'
+import { getRecipeImage } from '../utils/foodImages'
 
 export default function RecipeDetail() {
   const { id } = useParams()
@@ -72,7 +72,7 @@ export default function RecipeDetail() {
           alt={recipe.title}
           className="w-full h-full object-cover"
           loading="lazy"
-          onError={(e) => { e.target.src = CUISINE_IMAGES.default[0] }}
+          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80' }}
         />
       </div>
 

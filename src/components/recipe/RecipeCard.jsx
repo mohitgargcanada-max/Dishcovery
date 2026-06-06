@@ -7,7 +7,7 @@ import { useUIStore } from '../../store/uiStore'
 import DietTag from '../ui/DietTag'
 import AllergenBadge from '../ui/AllergenBadge'
 import { formatTime } from '../../utils/helpers'
-import { getRecipeImage, CUISINE_IMAGES } from '../../utils/constants'
+import { getRecipeImage } from '../../utils/foodImages'
 
 export default function RecipeCard({ recipe }) {
   const { user, profile } = useAuthStore()
@@ -38,7 +38,7 @@ export default function RecipeCard({ recipe }) {
           alt={recipe.title}
           loading="lazy"
           className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => { e.target.src = CUISINE_IMAGES.default[0] }}
+          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80' }}
         />
         {/* Save button */}
         <button
