@@ -9,8 +9,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const apiKey = (Deno.env.get('ANTHROPIC_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY '))?.trim()
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }),
+        { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })
+    }
     const { recipe, targetDiet, allergens } = await req.json()
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

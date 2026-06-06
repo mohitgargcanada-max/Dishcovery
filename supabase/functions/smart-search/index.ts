@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
 
   try {
     const { query, userId } = await req.json()
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const apiKey = (Deno.env.get('ANTHROPIC_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY '))?.trim()
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
