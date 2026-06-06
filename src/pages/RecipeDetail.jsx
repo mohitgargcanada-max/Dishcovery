@@ -10,6 +10,7 @@ import StepsBurner from '../components/ui/StepsBurner'
 import AllergenBadge from '../components/ui/AllergenBadge'
 import DietTag from '../components/ui/DietTag'
 import AdaptModal from '../components/recipe/AdaptModal'
+import ShareButton from '../components/ui/ShareButton'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import { formatTime, timeAgo } from '../utils/helpers'
 import { useRecipeImage } from '../hooks/useRecipeImage'
@@ -122,6 +123,7 @@ export default function RecipeDetail() {
           className="flex items-center gap-2 px-4 py-2.5 bg-[#FFB800]/10 border border-[#FFB800]/20 text-[#FFB800] rounded-xl text-sm font-medium hover:bg-[#FFB800]/20 transition-colors ai-badge-glow">
           ✨ Adapt
         </button>
+        <ShareButton recipe={recipe} />
         <Link to={`/recipe/${id}/cook`}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#4CAF7D]/15 border border-[#4CAF7D]/30 text-[#4CAF7D] rounded-xl text-sm font-medium hover:bg-[#4CAF7D]/25 transition-colors ml-auto">
           <Utensils size={14} /> Cook Mode

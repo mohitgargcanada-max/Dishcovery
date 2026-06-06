@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRecipes } from '../hooks/useRecipes'
 import { useAuthStore } from '../store/authStore'
 import RecipeGrid from '../components/recipe/RecipeGrid'
+import CommunityBar from '../components/ui/CommunityBar'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import EmptyState from '../components/ui/EmptyState'
 import { Link } from 'react-router-dom'
@@ -55,6 +56,9 @@ export default function Feed() {
           ✨ Generate
         </Link>
       </div>
+
+      {/* Community cooks */}
+      <CommunityBar />
 
       {/* Tabs */}
       <div className="flex gap-1 bg-[#1A1A1A] p-1 rounded-xl w-fit mb-6">
