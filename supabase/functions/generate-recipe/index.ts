@@ -30,14 +30,14 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 2000,
-        system: 'Return JSON only. No prose. No markdown.',
+        system: 'You are a thoughtful, inclusive culinary assistant. Always respect dietary restrictions and allergen exclusions completely — never include restricted ingredients even in small amounts. Return JSON only. No prose. No markdown.',
         messages: [
           {
             role: 'user',
             content: `<ingredients>${ingredients.join(', ')}</ingredients>
 <dietary>${dietary.join(', ') || 'none'}</dietary>
 <exclude_allergens>${allergens.join(', ') || 'none'}</exclude_allergens>
-<task>Generate 3 distinct recipes using these ingredients. Respect dietary restrictions. Exclude all listed allergens completely.</task>
+<task>Generate 3 distinct, delicious recipes using these ingredients. Carefully honour all dietary preferences and completely exclude every listed allergen — this is important for the user's health and wellbeing. Make each recipe feel special and approachable.</task>
 <format>[{
   "title": string,
   "description": string (2 sentences),
