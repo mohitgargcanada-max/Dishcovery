@@ -9,12 +9,8 @@ function pickFallback(id, cuisine) {
 }
 
 function isTrusted(url) {
-  return !!(url && (
-    url.includes('supabase.co/storage') ||
-    url.includes('images.unsplash.com') ||
-    url.includes('themealdb.com') ||
-    url.includes('www.themealdb.com')
-  ))
+  // Trust any photo_url stored in DB — it was either user-uploaded or SQL-set
+  return !!url
 }
 
 const cache = {}
