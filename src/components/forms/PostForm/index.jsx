@@ -137,21 +137,6 @@ export default function PostForm() {
       if (insertError) throw insertError
 
       // 3. Score with AI
-      // 3b. Auto-generate image if none provided
-      if (!photoUrl) {
-        try {
-          const imgResult = await generateImage({
-            title: recipe.title,
-            cuisine: recipe.cuisine_type,
-            ingredients: data.ingredients?.slice(0, 5).map(i => i.item).join(', '),
-          })
-          if (imgResult?.url) {
-            photoUrl = imgResult.url
-            await supabase.from('recipes').update({ photo_url: photoUrl }).eq('id', recipe.id)
-          }
-        } catch { /* silent */ }
-      }
-
       setAiStatus('analyzing')
       try {
         const scores = await scoreRecipe({

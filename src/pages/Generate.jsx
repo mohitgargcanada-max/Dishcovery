@@ -115,25 +115,8 @@ export default function Generate() {
 
     if (error) { addToast('Failed to save recipe', 'error'); return }
 
-    addToast('Recipe saved! Generating image...', 'info')
+    addToast('Recipe saved! ✨', 'success')
     navigate(`/recipe/${data.id}`)
-
-    // 2. Generate AI image in background and update recipe
-    try {
-      const imgResult = await generateImage({
-        title: recipe.title,
-        cuisine: recipe.cuisine,
-        ingredients: recipe.ingredients?.slice(0, 5).map(i => i.item).join(', '),
-      })
-      if (imgResult?.url) {
-        await supabase.from('recipes')
-          .update({ photo_url: imgResult.url })
-          .eq('id', data.id)
-        addToast('✨ AI photo ready!', 'success')
-      }
-    } catch {
-      // Silently fail — TheMealDB fallback will show something
-    }
   }
 
   return (

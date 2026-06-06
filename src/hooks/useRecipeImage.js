@@ -74,14 +74,10 @@ const FALLBACKS = [
 ]
 
 export function useRecipeImage(recipe) {
-  // Trust: user uploads (supabase storage) OR AI-generated (fal.ai)
-  const trustedPhoto = recipe?.photo_url && (
-    recipe.photo_url.includes('supabase.co/storage') ||
-    recipe.photo_url.includes('fal.media') ||
-    recipe.photo_url.includes('fal.run') ||
-    recipe.photo_url.includes('v2.fal.media')
-  ) ? recipe.photo_url : null
-  const userPhoto = trustedPhoto
+  // Only trust user-uploaded photos in Supabase Storage
+  // Fal.ai images are ignored — they're often wrong
+  const userPhoto = recipe?.photo_url?.includes('supabase.co/storage')
+    ? recipe.photo_url : null
   const [imgSrc, setImgSrc] = useState(userPhoto)
 
   useEffect(() => {
