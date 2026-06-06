@@ -65,7 +65,9 @@ Deno.serve(async (req) => {
 
     const data = JSON.parse(responseText)
     const text = data.content[0].text.trim()
-    const recipes = JSON.parse(text)
+    const jsonMatch = text.match(/\[[\s\S]*\]/)
+    if (!jsonMatch) throw new Error('No JSON in response: ' + text.substring(0, 200))
+    const recipes = JSON.parse(jsonMatch[0])
 
     return new Response(JSON.stringify({ recipes }), {
       headers: { ...corsHeaders, 'content-type': 'application/json' },
