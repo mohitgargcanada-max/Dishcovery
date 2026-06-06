@@ -140,7 +140,7 @@ export default function Generate() {
                 </div>
               )}
 
-              <details className="mb-4">
+              <details className="mb-3">
                 <summary className="text-sm text-[#888880] cursor-pointer hover:text-[#F5F5F0] mb-2">
                   {r.ingredients?.length} ingredients
                 </summary>
@@ -151,6 +151,20 @@ export default function Generate() {
                     </li>
                   ))}
                 </ul>
+              </details>
+
+              <details className="mb-4">
+                <summary className="text-sm text-[#888880] cursor-pointer hover:text-[#F5F5F0] mb-2">
+                  {r.steps?.length} steps
+                </summary>
+                <ol className="space-y-2 mt-2">
+                  {r.steps?.map((step, j) => (
+                    <li key={j} className="flex gap-2 text-xs text-[#888880]">
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#FF6B35]/20 text-[#FF6B35] flex items-center justify-center text-[10px] font-bold">{j + 1}</span>
+                      <span className="leading-relaxed">{step}</span>
+                    </li>
+                  ))}
+                </ol>
               </details>
 
               <div className="flex gap-2">
