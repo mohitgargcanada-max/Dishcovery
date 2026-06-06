@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: 'ANTHROPIC_API_KEY not found in environment' }),
-        { status: 500, headers: { ...corsHeaders, 'content-type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } }
       )
     }
 
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       return new Response(
         JSON.stringify({ error: `Anthropic API error ${response.status}: ${responseText}` }),
-        { status: 500, headers: { ...corsHeaders, 'content-type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } }
       )
     }
 
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     })
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'content-type': 'application/json' },
     })
   }
