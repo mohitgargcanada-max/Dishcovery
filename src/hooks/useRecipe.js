@@ -14,6 +14,6 @@ export function useRecipe(id) {
       return data
     },
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   })
 }

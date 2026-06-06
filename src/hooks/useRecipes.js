@@ -38,6 +38,6 @@ export function useRecipes(tab = 'trending', tasteProfile = null, userAllergens 
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length === PAGE_SIZE ? allPages.length : undefined,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   })
 }

@@ -12,7 +12,7 @@ import DietTag from '../components/ui/DietTag'
 import AdaptModal from '../components/recipe/AdaptModal'
 import SkeletonCard from '../components/ui/SkeletonCard'
 import { formatTime, timeAgo } from '../utils/helpers'
-import { getRecipeImage } from '../utils/foodImages'
+import { useRecipeImage } from '../hooks/useRecipeImage'
 
 export default function RecipeDetail() {
   const { id } = useParams()
@@ -22,6 +22,7 @@ export default function RecipeDetail() {
   const saveRecipe = useSaveRecipe()
   const cookedThis = useCookedThis()
   const addToast = useUIStore((s) => s.addToast)
+  const imageSrc = useRecipeImage(recipe)
   const [showAdapt, setShowAdapt] = useState(false)
   const [adaptedRecipe, setAdaptedRecipe] = useState(null)
   const navigate = useNavigate()
@@ -68,7 +69,7 @@ export default function RecipeDetail() {
       {/* Hero image */}
       <div className="rounded-2xl overflow-hidden mb-4 h-64">
         <img
-          src={getRecipeImage(recipe)}
+          src={imageSrc}
           alt={recipe.title}
           className="w-full h-full object-cover"
           loading="lazy"

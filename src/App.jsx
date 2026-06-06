@@ -19,7 +19,13 @@ const Saved = lazy(() => import('./pages/Saved'))
 const Onboarding = lazy(() => import('./pages/Onboarding'))
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1 } },
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 0,
+      gcTime: 2 * 60 * 1000,
+    },
+  },
 })
 
 function PageLoader() {

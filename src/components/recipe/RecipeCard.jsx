@@ -7,7 +7,7 @@ import { useUIStore } from '../../store/uiStore'
 import DietTag from '../ui/DietTag'
 import AllergenBadge from '../ui/AllergenBadge'
 import { formatTime } from '../../utils/helpers'
-import { getRecipeImage } from '../../utils/foodImages'
+import { useRecipeImage } from '../../hooks/useRecipeImage'
 
 export default function RecipeCard({ recipe }) {
   const { user, profile } = useAuthStore()
@@ -15,6 +15,7 @@ export default function RecipeCard({ recipe }) {
   const saveRecipe = useSaveRecipe()
   const addToast = useUIStore((s) => s.addToast)
 
+  const imageSrc = useRecipeImage(recipe)
   const isSaved = !!saveStatus
   const userAllergens = profile?.allergens ?? []
   const warnAllergens = (recipe.allergens ?? []).filter((a) => userAllergens.includes(a))
@@ -34,7 +35,7 @@ export default function RecipeCard({ recipe }) {
       {/* Image */}
       <div className="relative overflow-hidden bg-[#242424]">
         <img
-          src={getRecipeImage(recipe)}
+          src={imageSrc}
           alt={recipe.title}
           loading="lazy"
           className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
