@@ -9,8 +9,12 @@ function pickFallback(id, cuisine) {
 }
 
 function isTrusted(url) {
-  // Trust any photo_url stored in DB — it was either user-uploaded or SQL-set
-  return !!url
+  return !!(url && (
+    url.includes('supabase.co/storage') ||
+    url.includes('www.themealdb.com') ||
+    url.includes('fal.media') ||
+    url.includes('fal.run')
+  ))
 }
 
 const cache = {}
@@ -29,6 +33,10 @@ export function useRecipeImage(recipe) {
       if (result) {
         cache[key] = result
         setDynamicSrc(result)
+        // Persist to DB so it never looks up again
+        import('../lib/supabase').then(({ supabase }) => {
+          supabase.from('recipes').update({ photo_url: result }).eq('id', recipe.id)
+        })
       }
     })
   }, [recipe?.id, recipe?.photo_url])
