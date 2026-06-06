@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, Loader2, Plus, Bookmark, ArrowRight } from 'lucide-react'
+import { Sparkles, Loader2, Plus, Bookmark, ArrowLeft, MessageSquare, Tag } from 'lucide-react'
 import { generateRecipe } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
@@ -7,13 +7,20 @@ import { useUIStore } from '../store/uiStore'
 import ChipInput from '../components/ui/ChipInput'
 import DietTag from '../components/ui/DietTag'
 import { DIET_TAGS } from '../utils/constants'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { formatTime } from '../utils/helpers'
 
+const MODES = [
+  { id: 'ingredients', label: 'By Ingredients', icon: Tag },
+  { id: 'natural', label: 'Ask Naturally', icon: MessageSquare },
+]
+
 export default function Generate() {
+  const [mode, setMode] = useState('ingredients')
   const [ingredients, setIngredients] = useState([])
   const [allergens, setAllergens] = useState([])
   const [dietary, setDietary] = useState([])
+  const [nlQuery, setNlQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [recipes, setRecipes] = useState([])
   const [error, setError] = useState(null)
@@ -26,22 +33,48 @@ export default function Generate() {
   }
 
   async function handleGenerate() {
-    if (ingredients.length === 0) { addToast('Add at least one ingredient', 'error'); return }
+    let finalIngredients = ingredients
+    let finalDietary = [...dietary, ...(profile?.taste_profile?.diets ?? [])]
+    let finalAllergens = [...allergens, ...(profile?.allergens ?? [])]
+
+    if (mode === 'natural') {
+      if (!nlQuery.trim()) { addToast('Please describe what you want to cook', 'error'); return }
+      // Parse natural language into structured data
+      const parsed = parseNaturalQuery(nlQuery)
+      finalIngredients = parsed.ingredients.length ? parsed.ingredients : ['any ingredients']
+      finalDietary = [...new Set([...finalDietary, ...parsed.dietary])]
+      finalAllergens = [...new Set([...finalAllergens, ...parsed.allergens])]
+    } else {
+      if (finalIngredients.length === 0) { addToast('Add at least one ingredient', 'error'); return }
+    }
+
     setLoading(true)
     setError(null)
     setRecipes([])
     try {
       const result = await generateRecipe({
-        ingredients,
-        dietary: [...dietary, ...(profile?.taste_profile?.diets ?? [])],
-        allergens: [...allergens, ...(profile?.allergens ?? [])],
+        ingredients: finalIngredients,
+        dietary: finalDietary,
+        allergens: finalAllergens,
+        ...(mode === 'natural' ? { freeform: nlQuery } : {}),
       })
       setRecipes(result.recipes ?? [])
     } catch (e) {
-      setError(e.message || 'Generation failed. Check your connection and try again.')
+      setError(e.message || 'Generation failed. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  function parseNaturalQuery(q) {
+    const lower = q.toLowerCase()
+    const dietary = DIET_TAGS.filter((t) => lower.includes(t.replace('-', ' ')) || lower.includes(t))
+    const allergenWords = ['nuts', 'dairy', 'gluten', 'eggs', 'soy', 'shellfish', 'fish', 'sesame']
+    const allergens = allergenWords.filter((a) => lower.includes('no ' + a) || lower.includes('without ' + a) || lower.includes('free ' + a))
+    const words = q.match(/\b[a-zA-Z]{3,}\b/g) ?? []
+    const stopWords = new Set(['want', 'make', 'cook', 'with', 'for', 'the', 'and', 'that', 'this', 'have', 'using', 'some', 'can', 'please', 'dish', 'meal', 'food', 'recipe', 'something', 'quick', 'easy', 'healthy'])
+    const ingredients = words.filter((w) => !stopWords.has(w.toLowerCase()) && !DIET_TAGS.includes(w.toLowerCase()) && !allergenWords.includes(w.toLowerCase())).slice(0, 6)
+    return { ingredients, dietary, allergens }
   }
 
   async function handleSave(recipe) {
@@ -57,52 +90,89 @@ export default function Generate() {
       cook_time: recipe.cook_time,
       serving_size: recipe.serving_size,
       ai_diet_tags: recipe.diet_tags ?? [],
+      is_published: true,
     }).select().single()
     if (!error) {
-      addToast('Recipe saved!', 'success')
+      addToast('Recipe saved! ✨', 'success')
       navigate(`/recipe/${data.id}`)
+    } else {
+      addToast('Failed to save recipe', 'error')
     }
   }
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-[#FFB800] text-2xl ai-badge-glow">✨</span>
-        <h1 className="font-display text-2xl font-bold text-[#F5F5F0]">AI Recipe Generator</h1>
+      {/* Header with back button */}
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => navigate(-1)} className="p-2 text-[#888880] hover:text-[#F5F5F0] hover:bg-white/5 rounded-lg transition-colors">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-[#FFB800] text-2xl">✨</span>
+          <h1 className="font-display text-2xl font-bold text-[#F5F5F0]">AI Recipe Generator</h1>
+        </div>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="flex gap-1 bg-[#1A1A1A] p-1 rounded-xl mb-5">
+        {MODES.map(({ id, label, icon: Icon }) => (
+          <button key={id} onClick={() => setMode(id)}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${mode === id ? 'bg-[#FF6B35] text-white' : 'text-[#888880] hover:text-[#F5F5F0]'}`}>
+            <Icon size={15} /> {label}
+          </button>
+        ))}
       </div>
 
       <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 space-y-5">
-        <div>
-          <label className="block text-sm text-[#888880] mb-1.5">Ingredients you have *</label>
-          <ChipInput
-            value={ingredients}
-            onChange={setIngredients}
-            placeholder="e.g. chicken, garlic, lemon..."
-          />
-        </div>
 
-        <div>
-          <label className="block text-sm text-[#888880] mb-2">Dietary preferences</label>
-          <div className="flex flex-wrap gap-2">
-            {DIET_TAGS.map((tag) => (
-              <button key={tag} type="button" onClick={() => toggleDiet(tag)}
-                className={`px-3 py-1.5 rounded-full text-xs border capitalize transition-colors ${dietary.includes(tag) ? 'bg-[#FF6B35]/20 border-[#FF6B35]/50 text-[#FF6B35]' : 'bg-[#242424] border-white/10 text-[#888880] hover:border-white/20'}`}>
-                {tag}
-              </button>
-            ))}
+        {mode === 'natural' ? (
+          <div>
+            <label className="block text-sm text-[#888880] mb-1.5">Describe what you want</label>
+            <textarea
+              value={nlQuery}
+              onChange={(e) => setNlQuery(e.target.value)}
+              placeholder={'e.g. "I want a quick vegan dinner with chickpeas and spinach, no nuts"\nor "Healthy chicken meal under 500 calories for meal prep"'}
+              rows={4}
+              className="w-full bg-[#242424] border border-white/10 rounded-xl px-4 py-3 text-[#F5F5F0] placeholder:text-[#888880]/60 focus:outline-none focus:border-[#FF6B35]/50 text-sm resize-none leading-relaxed"
+            />
+            <p className="text-xs text-[#888880] mt-1.5">✨ AI will understand your request naturally — mention ingredients, dietary needs, cuisine, or any preferences</p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm text-[#888880] mb-1.5">Ingredients you have *</label>
+              <ChipInput
+                value={ingredients}
+                onChange={setIngredients}
+                placeholder="Type an ingredient and press Enter or comma..."
+              />
+              <p className="text-xs text-[#888880] mt-1">Press Enter, comma, or click away to add each ingredient</p>
+            </div>
 
-        <div>
-          <label className="block text-sm text-[#888880] mb-1.5">Exclude allergens</label>
-          <ChipInput
-            value={allergens}
-            onChange={setAllergens}
-            placeholder="e.g. nuts, dairy..."
-          />
-        </div>
+            <div>
+              <label className="block text-sm text-[#888880] mb-2">Dietary preferences</label>
+              <div className="flex flex-wrap gap-2">
+                {DIET_TAGS.map((tag) => (
+                  <button key={tag} type="button" onClick={() => toggleDiet(tag)}
+                    className={`px-3 py-1.5 rounded-full text-xs border capitalize transition-colors ${dietary.includes(tag) ? 'bg-[#FF6B35]/20 border-[#FF6B35]/50 text-[#FF6B35]' : 'bg-[#242424] border-white/10 text-[#888880] hover:border-white/20'}`}>
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <button onClick={handleGenerate} disabled={loading || ingredients.length === 0}
+            <div>
+              <label className="block text-sm text-[#888880] mb-1.5">Exclude allergens</label>
+              <ChipInput
+                value={allergens}
+                onChange={setAllergens}
+                placeholder="e.g. nuts, dairy..."
+              />
+            </div>
+          </>
+        )}
+
+        <button onClick={handleGenerate} disabled={loading || (mode === 'ingredients' && ingredients.length === 0) || (mode === 'natural' && !nlQuery.trim())}
           className="w-full py-3 bg-[#FF6B35] text-white rounded-xl font-medium disabled:opacity-40 hover:bg-[#e55a25] transition-colors flex items-center justify-center gap-2">
           {loading ? (
             <><Loader2 size={16} className="animate-spin" /> Dishcovery AI is cooking...</>
@@ -119,7 +189,7 @@ export default function Generate() {
       {/* Results */}
       {recipes.length > 0 && (
         <div className="mt-8 space-y-4">
-          <h2 className="font-display text-lg font-semibold text-[#F5F5F0]">Generated Recipes</h2>
+          <h2 className="font-display text-lg font-semibold text-[#F5F5F0]">✨ Generated Recipes</h2>
           {recipes.map((r, i) => (
             <div key={i} className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 hover:border-orange-500/30 transition-colors">
               <div className="flex items-start justify-between gap-3 mb-2">
@@ -170,11 +240,7 @@ export default function Generate() {
               <div className="flex gap-2">
                 <button onClick={() => handleSave(r)}
                   className="flex items-center gap-1.5 px-4 py-2 bg-[#FF6B35] text-white rounded-xl text-sm font-medium hover:bg-[#e55a25] transition-colors">
-                  <Bookmark size={14} /> Save Recipe
-                </button>
-                <button onClick={() => handleSave(r)}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-[#1A1A1A] border border-white/10 text-[#888880] hover:text-[#F5F5F0] rounded-xl text-sm transition-colors">
-                  <Plus size={14} /> Post
+                  <Bookmark size={14} /> Save & View
                 </button>
               </div>
             </div>

@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json()
-    const { ingredients, dietary, allergens } = body
+    const { ingredients, dietary, allergens, freeform } = body
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -29,15 +29,15 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
+        max_tokens: 4096,
         system: 'You are a thoughtful, inclusive culinary assistant. Always respect dietary restrictions and allergen exclusions completely — never include restricted ingredients even in small amounts. Return JSON only. No prose. No markdown.',
         messages: [
           {
             role: 'user',
-            content: `<ingredients>${ingredients.join(', ')}</ingredients>
+            content: `${freeform ? `<user_request>${freeform}</user_request>\n` : ''}<ingredients>${ingredients.join(', ')}</ingredients>
 <dietary>${dietary.join(', ') || 'none'}</dietary>
 <exclude_allergens>${allergens.join(', ') || 'none'}</exclude_allergens>
-<task>Generate 3 distinct, delicious recipes using these ingredients. Carefully honour all dietary preferences and completely exclude every listed allergen — this is important for the user's health and wellbeing. Make each recipe feel special and approachable.</task>
+<task>Generate 3 distinct, delicious recipes${freeform ? ' that match the user\'s request' : ' using these ingredients'}. Carefully honour all dietary preferences and completely exclude every listed allergen — this is important for the user\'s health and wellbeing. Make each recipe feel special and approachable.</task>
 <format>[{
   "title": string,
   "description": string (2 sentences),

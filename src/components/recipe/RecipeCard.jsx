@@ -20,6 +20,7 @@ export default function RecipeCard({ recipe }) {
 
   async function handleSave(e) {
     e.preventDefault()
+    e.stopPropagation()
     if (!user) { addToast('Sign in to save recipes', 'error'); return }
     await saveRecipe.mutateAsync({ userId: user.id, recipeId: recipe.id })
   }

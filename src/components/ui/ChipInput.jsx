@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 
-export default function ChipInput({ value = [], onChange, placeholder = 'Type and press Enter...' }) {
+export default function ChipInput({ value = [], onChange, placeholder = 'Type and press Enter or comma...' }) {
   const [input, setInput] = useState('')
 
+  function addCurrent() {
+    const v = input.trim().toLowerCase()
+    if (v && !value.includes(v)) onChange([...value, v])
+    setInput('')
+  }
+
   function handleKey(e) {
-    if ((e.key === 'Enter' || e.key === ',') && input.trim()) {
+    if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
-      const v = input.trim().toLowerCase()
-      if (!value.includes(v)) onChange([...value, v])
-      setInput('')
+      addCurrent()
     }
     if (e.key === 'Backspace' && !input && value.length) {
       onChange(value.slice(0, -1))
@@ -21,8 +25,10 @@ export default function ChipInput({ value = [], onChange, placeholder = 'Type an
   }
 
   return (
-    <div className="min-h-[44px] flex flex-wrap gap-1.5 p-2 bg-[#1A1A1A] border border-white/10 rounded-lg focus-within:border-[#FF6B35]/50 cursor-text"
-      onClick={(e) => e.currentTarget.querySelector('input')?.focus()}>
+    <div
+      className="min-h-[44px] flex flex-wrap gap-1.5 p-2 bg-[#1A1A1A] border border-white/10 rounded-lg focus-within:border-[#FF6B35]/50 cursor-text"
+      onClick={(e) => e.currentTarget.querySelector('input')?.focus()}
+    >
       {value.map((v) => (
         <span key={v} className="chip">
           {v}
@@ -35,6 +41,7 @@ export default function ChipInput({ value = [], onChange, placeholder = 'Type an
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKey}
+        onBlur={addCurrent}
         placeholder={value.length === 0 ? placeholder : ''}
         className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-[#F5F5F0] placeholder:text-[#888880]"
       />
