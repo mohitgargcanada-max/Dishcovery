@@ -11,7 +11,9 @@ function pickFallback(id, cuisine) {
 function isTrusted(url) {
   return !!(url && (
     url.includes('supabase.co/storage') ||
-    url.includes('www.themealdb.com') ||
+    url.includes('themealdb.com') ||
+    url.includes('images.unsplash.com') ||
+    url.includes('plus.unsplash.com') ||
     url.includes('fal.media') ||
     url.includes('fal.run')
   ))
