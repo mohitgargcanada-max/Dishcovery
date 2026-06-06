@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from './store/authStore'
 import { useUIStore } from './store/uiStore'
 import Navbar from './components/layout/Navbar'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 import Sidebar from './components/layout/Sidebar'
 import BottomNav from './components/layout/BottomNav'
 
@@ -89,6 +90,7 @@ function AppLayout({ children }) {
 function AppRoutes() {
   return (
     <AppLayout>
+      <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -104,6 +106,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/feed" replace />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   )
 }
