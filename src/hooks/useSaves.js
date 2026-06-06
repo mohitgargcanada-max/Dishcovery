@@ -26,7 +26,7 @@ export function useSaveRecipe() {
         .select('id')
         .eq('user_id', userId)
         .eq('recipe_id', recipeId)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await supabase.from('user_saves').delete().eq('id', existing.id)
@@ -74,7 +74,7 @@ export function useSaveStatus(userId, recipeId) {
         .select('id, is_favourite')
         .eq('user_id', userId)
         .eq('recipe_id', recipeId)
-        .single()
+        .maybeSingle()
       return data
     },
     enabled: !!(userId && recipeId),

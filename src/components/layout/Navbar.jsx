@@ -40,10 +40,6 @@ export default function Navbar() {
         <Search size={20} />
       </Link>
 
-      <Link to="/generate" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] rounded-lg text-sm font-medium hover:bg-[#FF6B35]/25 transition-colors">
-        <span className="text-[#FFB800]">✨</span> AI Generate
-      </Link>
-
       <Link to="/post" className="p-2 text-[#888880] hover:text-[#FF6B35] transition-colors">
         <PlusCircle size={20} />
       </Link>
