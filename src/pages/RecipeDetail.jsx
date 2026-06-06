@@ -107,7 +107,7 @@ export default function RecipeDetail() {
       )}
 
       {/* Actions */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <button onClick={handleSave}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
             isSaved ? 'bg-[#FF6B35] text-white' : 'bg-[#1A1A1A] border border-white/10 text-[#888880] hover:text-[#F5F5F0]'

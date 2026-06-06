@@ -112,7 +112,7 @@ export default function Profile() {
               </button>
             )}
           </div>
-          <p className="text-[#888880] text-sm">@{profile.username || user?.id?.slice(0, 8)}</p>
+          <p className="text-[#888880] text-sm">@{profile.username || profile.full_name?.split(' ')[0]?.toLowerCase() || 'user'}</p>
           {profile.bio && <p className="text-[#F5F5F0]/80 text-sm mt-1">{profile.bio}</p>}
 
           <div className="flex gap-4 mt-2 text-sm flex-wrap">

@@ -47,7 +47,7 @@ export default function Sidebar() {
           )}
           <div className="flex flex-col">
             <span className="text-[#F5F5F0] text-xs font-medium leading-tight">{profile.full_name}</span>
-            <span className="text-[#888880] text-xs">@{profile.username || 'me'}</span>
+            <span className="text-[#888880] text-xs">@{profile.username || profile.full_name?.split(' ')[0]?.toLowerCase() || 'me'}</span>
           </div>
         </NavLink>
       )}
