@@ -7,12 +7,42 @@ const SKIP = new Set(['classic','easy','quick','homemade','simple','best','stree
   'and','the','a','an','bowl','wrap','plate','loaded','ultimate','perfect',
   'authentic','traditional','healthy','slow','cooked','pan','seared','stuffed'])
 
+// Manual overrides for dishes TheMealDB names differently
+const OVERRIDES = {
+  'butter chicken':    'Butter Chicken',
+  'murgh makhani':     'Butter Chicken',
+  'chana masala':      'Chana Masala',
+  'bibimbap':          'Bibimbap',
+  'bulgogi':           'Beef Bulgogi',
+  'dal tadka':         'Dal Tarka',
+  'palak paneer':      'Palak Paneer',
+  'lamb tagine':       'Lamb Tagine',
+  'pad thai':          'Pad Thai',
+  'green curry':       'Thai Green Curry',
+  'fish and chips':    'Fish and Chips',
+  'avocado toast':     'Avocado Toast',
+  'shakshuka':         'Shakshuka',
+  'tiramisu':          'Tiramisu',
+  'gyoza':             'Gyoza Dumplings',
+}
+
 function extractDishName(title) {
   if (!title) return title
-  return title.toLowerCase()
+
+  // Remove text in parentheses e.g. "Butter Chicken (Murgh Makhani)" → "Butter Chicken"
+  const cleaned = title.replace(/\(.*?\)/g, '').trim()
+
+  // Check manual overrides first
+  const lower = cleaned.toLowerCase()
+  for (const [key, val] of Object.entries(OVERRIDES)) {
+    if (lower.includes(key)) return val
+  }
+
+  return cleaned
+    .toLowerCase()
     .split(/\s+/)
     .filter(w => w.length > 2 && !SKIP.has(w))
-    .join(' ') || title.toLowerCase()
+    .join(' ') || cleaned.toLowerCase()
 }
 
 // Source 1: TheMealDB - purpose-built food database, free, no key
