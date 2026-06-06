@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Sparkles, Loader2, Plus, Bookmark, ArrowLeft, MessageSquare, Tag } from 'lucide-react'
-import { generateRecipe, generateImage } from '../lib/api'
+import { generateRecipe, generateImage, getRecipeImage } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { useUIStore } from '../store/uiStore'
@@ -128,8 +128,8 @@ export default function Generate() {
     navigate(`/recipe/${data.id}`)
 
     // Auto-lookup and store image in background
-    lookupRecipeImage(recipe.title, recipe.cuisine, data.id).then(imgUrl => {
-      if (imgUrl && !data.photo_url) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
+    getRecipeImage({ title: recipe.title, cuisine: recipe.cuisine }).then(imgUrl => {
+      if (imgUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
     })
   }
 

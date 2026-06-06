@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
-import { scoreRecipe, generateImage } from '../../../lib/api'
+import { scoreRecipe, generateImage, getRecipeImage } from '../../../lib/api'
 import { lookupRecipeImage } from '../../../utils/recipeImageLookup'
 import { useAuthStore } from '../../../store/authStore'
 import { useUIStore } from '../../../store/uiStore'
@@ -140,9 +140,11 @@ export default function PostForm() {
       // 3. Score with AI
       // Auto-lookup image if none uploaded
       if (!photoUrl) {
-        lookupRecipeImage(recipe.title, data.cuisine_type, recipe.id).then(imgUrl => {
-          if (imgUrl && !photoUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', recipe.id)
-        })
+        if (!photoUrl) {
+          getRecipeImage({ title: recipe.title, cuisine: data.cuisine_type }).then(imgUrl => {
+            if (imgUrl) supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', recipe.id)
+          })
+        }
       }
 
       setAiStatus('analyzing')

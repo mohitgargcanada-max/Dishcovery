@@ -35,6 +35,13 @@ export async function generateImage({ title, cuisine, ingredients }) {
   return data
 }
 
+export async function getRecipeImage({ title, cuisine }) {
+  const { data } = await supabase.functions.invoke('get-recipe-image', {
+    body: { title, cuisine },
+  })
+  return data?.url ?? null
+}
+
 export async function smartSearch({ query, userId }) {
   const { data, error } = await supabase.functions.invoke('smart-search', {
     body: { query, userId },
