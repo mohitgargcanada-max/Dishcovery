@@ -8,6 +8,8 @@ Deno.serve(async (req) => {
 
   try {
     const unsplashKey = (Deno.env.get('UNSPLASH_ACCESS_KEY') || Deno.env.get('UNSPLASH_ACCESS_KEY '))?.trim()
+    const anthropicKey = (Deno.env.get('ANTHROPIC_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY '))?.trim()
+
     if (!unsplashKey) {
       return new Response(JSON.stringify({ url: null, error: 'UNSPLASH_ACCESS_KEY not set' }),
         { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })
@@ -15,32 +17,46 @@ Deno.serve(async (req) => {
 
     const { title, cuisine } = await req.json()
 
-    // Strip adjectives, keep core dish keywords for better Unsplash results
-    const SKIP = new Set(['zesty','classic','easy','quick','crispy','creamy','spicy','grilled',
-      'roasted','baked','fried','slow','cooked','homemade','simple','perfect','ultimate',
-      'best','loaded','stuffed','smoky','tangy','sweet','savory','hearty','fresh',
-      'lemon','garlic','herb','butter','honey','pepper','chili','ginger','lime','citrus'])
-    const coreWords = title.split(/\s+/)
-      .filter(w => w.length > 2 && !SKIP.has(w.toLowerCase()))
-      .slice(-3).join(' ')
-    const searchTitle = coreWords || title.split(' ').slice(-2).join(' ')
-    const query = encodeURIComponent(`${searchTitle} ${cuisine || ''} food`.trim())
+    // Step 1: Use Claude Haiku to extract core dish name
+    let searchTerm = title
+    if (anthropicKey) {
+      try {
+        const claude = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 20,
+            system: 'Return only the core dish name, 1-3 words, no punctuation.',
+            messages: [{ role: 'user', content: `Extract core dish name: "${title}"` }],
+          }),
+        })
+        if (claude.ok) {
+          const d = await claude.json()
+          const extracted = d.content[0].text.trim()
+          if (extracted && extracted.length < 40) searchTerm = extracted
+        }
+      } catch { /* use original title */ }
+    }
 
+    // Step 2: Search Unsplash with clean dish name
+    const query = encodeURIComponent(`${searchTerm} ${cuisine || ''} food`.trim())
     const r = await fetch(
       `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape&content_filter=high`,
       { headers: { 'Authorization': `Client-ID ${unsplashKey}` } }
     )
 
-    if (!r.ok) {
-      return new Response(JSON.stringify({ url: null }),
-        { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })
-    }
+    if (!r.ok) return new Response(JSON.stringify({ url: null }),
+      { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })
 
     const data = await r.json()
-    const url = data?.urls?.regular ?? null
-
-    return new Response(JSON.stringify({ url }),
+    return new Response(JSON.stringify({ url: data?.urls?.regular ?? null }),
       { headers: { ...corsHeaders, 'content-type': 'application/json' } })
+
   } catch (e) {
     return new Response(JSON.stringify({ url: null, error: String(e) }),
       { status: 200, headers: { ...corsHeaders, 'content-type': 'application/json' } })

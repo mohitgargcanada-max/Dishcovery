@@ -3,9 +3,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-async function getUnsplashImage(title: string, unsplashKey: string): Promise<string | null> {
+async function extractDishName(title: string, anthropicKey: string): Promise<string> {
   try {
-    const query = encodeURIComponent(`${title} food dish`)
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 20,
+        system: 'Return only the core dish name, 1-3 words, no punctuation.',
+        messages: [{ role: 'user', content: `Extract core dish name: "${title}"` }],
+      }),
+    })
+    if (!r.ok) return title
+    const d = await r.json()
+    const extracted = d.content[0].text.trim()
+    return extracted && extracted.length < 40 ? extracted : title
+  } catch { return title }
+}
+
+async function getUnsplashImage(title: string, cuisine: string, unsplashKey: string, anthropicKey: string): Promise<string | null> {
+  try {
+    const dishName = await extractDishName(title, anthropicKey)
+    const query = encodeURIComponent(`${dishName} ${cuisine || ''} food`.trim())
     const r = await fetch(
       `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape&content_filter=high`,
       { headers: { 'Authorization': `Client-ID ${unsplashKey}` } }
@@ -36,9 +56,11 @@ Deno.serve(async (req) => {
     )
     const recipes = await res.json()
 
+    const anthropicKey = (Deno.env.get('ANTHROPIC_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY '))?.trim() ?? ''
+
     const results = []
     for (const recipe of recipes) {
-      const imgUrl = await getUnsplashImage(recipe.title, unsplashKey)
+      const imgUrl = await getUnsplashImage(recipe.title, recipe.cuisine_type, unsplashKey, anthropicKey)
       if (imgUrl) {
         await fetch(`${supabaseUrl}/rest/v1/recipes?id=eq.${recipe.id}`, {
           method: 'PATCH',
