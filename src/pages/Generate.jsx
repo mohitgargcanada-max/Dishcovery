@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Sparkles, Loader2, Plus, Bookmark, ArrowLeft, MessageSquare, Tag } from 'lucide-react'
-import { generateRecipe, generateImage, getRecipeImage } from '../lib/api'
+import { generateRecipe, generateImage, getRecipeImage, scoreRecipe } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { useUIStore } from '../store/uiStore'
@@ -124,10 +124,27 @@ export default function Generate() {
 
     if (error) { addToast('Failed to save recipe', 'error'); return }
 
-    // Fetch image BEFORE navigating so recipe detail shows correct photo immediately
-    addToast('Finding the perfect photo...', 'info')
-    const imgUrl = await getRecipeImage({ title: recipe.title, cuisine: recipe.cuisine })
-    if (imgUrl) await supabase.from('recipes').update({ photo_url: imgUrl }).eq('id', data.id)
+    addToast('Analysing & finding photo...', 'info')
+
+    // Run scoring and image fetch in parallel
+    const [scores, imgUrl] = await Promise.all([
+      scoreRecipe({ title: recipe.title, ingredients: recipe.ingredients, steps: recipe.steps, cuisine: recipe.cuisine }).catch(() => null),
+      getRecipeImage({ title: recipe.title, cuisine: recipe.cuisine }).catch(() => null),
+    ])
+
+    const updates = {}
+    if (imgUrl) updates.photo_url = imgUrl
+    if (scores && !scores.error) {
+      updates.ai_nutrition_score = scores.nutrition_score
+      updates.ai_difficulty_score = scores.difficulty_score
+      updates.ai_authenticity_score = scores.authenticity_score
+      updates.ai_calories_per_serving = scores.calories_per_serving
+      updates.ai_diet_tags = scores.diet_tags ?? []
+      updates.allergens = scores.allergen_warnings ?? []
+    }
+    if (Object.keys(updates).length) {
+      await supabase.from('recipes').update(updates).eq('id', data.id)
+    }
 
     addToast('Recipe saved! ✨', 'success')
     navigate(`/recipe/${data.id}`)
