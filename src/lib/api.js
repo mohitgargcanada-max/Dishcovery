@@ -21,7 +21,8 @@ export async function adaptRecipe({ recipe, targetDiet, allergens }) {
   const { data, error } = await supabase.functions.invoke('adapt-recipe', {
     body: { recipe, targetDiet, allergens },
   })
-  if (error) throw error
+  if (error) throw new Error(error.message)
+  if (data?.error) throw new Error(data.error)
   return data
 }
 

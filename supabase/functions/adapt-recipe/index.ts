@@ -54,15 +54,17 @@ Deno.serve(async (req) => {
 
     const data = await response.json()
     const text = data.content[0].text.trim()
-    const adapted = JSON.parse(text)
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('No JSON in response')
+    const adapted = JSON.parse(jsonMatch[0])
 
     return new Response(
       JSON.stringify({ adapted, changes: adapted.changes_summary }),
       { headers: { ...corsHeaders, 'content-type': 'application/json' } }
     )
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: String(e) }), {
+      status: 200,
       headers: { ...corsHeaders, 'content-type': 'application/json' },
     })
   }

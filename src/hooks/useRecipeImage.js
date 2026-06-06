@@ -140,7 +140,12 @@ async function tryMealDB(title) {
 }
 
 export function useRecipeImage(recipe) {
-  const userPhoto = recipe?.photo_url?.includes('supabase.co/storage') ? recipe.photo_url : null
+  const url = recipe?.photo_url
+  const userPhoto = url && (
+    url.includes('supabase.co/storage') ||   // user upload
+    url.includes('images.unsplash.com') ||   // our SQL-set curated images
+    url.includes('themealdb.com')            // TheMealDB images
+  ) ? url : null
   const [imgSrc, setImgSrc] = useState(
     userPhoto ?? pickPhoto(recipe?.id, recipe?.cuisine_type)
   )
