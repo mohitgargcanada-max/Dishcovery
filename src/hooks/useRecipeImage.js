@@ -19,23 +19,21 @@ function isTrusted(url) {
   ))
 }
 
-const cache = {}
-
 export function useRecipeImage(recipe) {
   const [dynamicSrc, setDynamicSrc] = useState(null)
 
   useEffect(() => {
+    // Always clear dynamic src when recipe changes
+    setDynamicSrc(null)
+
     const url = recipe?.photo_url
     if (isTrusted(url) || !recipe?.id || !recipe?.title) return
 
-    const key = recipe.id
-    if (cache[key]) { setDynamicSrc(cache[key]); return }
-
+    // photo_url is null — look up TheMealDB
     lookupRecipeImage(recipe.title, recipe.cuisine_type, recipe.id).then(result => {
       if (result) {
-        cache[key] = result
         setDynamicSrc(result)
-        // Persist to DB so it never looks up again
+        // Persist to DB so future loads use trusted URL directly
         import('../lib/supabase').then(({ supabase }) => {
           supabase.from('recipes').update({ photo_url: result }).eq('id', recipe.id)
         })
@@ -43,7 +41,7 @@ export function useRecipeImage(recipe) {
     })
   }, [recipe?.id, recipe?.photo_url])
 
-  // Always prefer trusted DB photo over dynamic lookup
+  // Trusted DB photo always wins — no cache, always fresh
   const trusted = isTrusted(recipe?.photo_url) ? recipe.photo_url : null
   return trusted ?? dynamicSrc ?? pickFallback(recipe?.id, recipe?.cuisine_type)
 }
