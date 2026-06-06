@@ -33,7 +33,9 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-40 h-14 bg-[#0D0D0D]/90 backdrop-blur-md border-b border-white/5 flex items-center px-4 gap-4">
       <Link to="/feed" className="flex items-center gap-2 mr-auto">
         <ChefHat className="text-[#FF6B35]" size={22} />
-        <span className="font-display font-bold text-xl hidden sm:block bg-gradient-to-r from-[#FF6B35] via-[#FFB800] to-[#4CAF7D] bg-clip-text text-transparent">Dishcovery</span>
+        <span className="font-display font-bold text-xl hidden sm:block">
+          <span className="text-[#FF6B35]">Dish</span><span className="text-[#FFB800]">covery</span>
+        </span>
       </Link>
 
       <Link to="/search" className="p-2 text-[#888880] hover:text-[#F5F5F0] transition-colors">

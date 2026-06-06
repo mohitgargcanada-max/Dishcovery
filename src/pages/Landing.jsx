@@ -13,7 +13,9 @@ export default function Landing() {
       <nav className="flex items-center px-6 py-4 border-b border-white/5">
         <div className="flex items-center gap-2">
           <ChefHat className="text-[#FF6B35]" size={24} />
-          <span className="font-display font-bold text-xl bg-gradient-to-r from-[#FF6B35] via-[#FFB800] to-[#4CAF7D] bg-clip-text text-transparent">Dishcovery</span>
+          <span className="font-display font-bold text-xl">
+            <span className="text-[#FF6B35]">Dish</span><span className="text-[#FFB800]">covery</span>
+          </span>
         </div>
         <button onClick={signInWithGoogle}
           className="ml-auto px-4 py-2 bg-[#FF6B35] text-white rounded-xl text-sm font-medium hover:bg-[#e55a25] transition-colors">

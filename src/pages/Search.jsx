@@ -44,11 +44,15 @@ export default function Search() {
         dbQuery = dbQuery.lte('cook_time', filters.max_time)
       }
 
-      // Merge AI-parsed diet tags with user's own dietary preferences
+      // User's dietary preferences — STRICT: each must be present in recipe tags
       const userDiets = profile?.taste_profile?.diets ?? []
-      const allDiets = [...new Set([...(filters.diet_tags ?? []), ...userDiets])]
-      if (allDiets.length) {
-        dbQuery = dbQuery.overlaps('ai_diet_tags', allDiets)
+      for (const diet of userDiets) {
+        dbQuery = dbQuery.contains('ai_diet_tags', [diet])
+      }
+
+      // AI-parsed diet tags from the search query — additive hint
+      if (filters.diet_tags?.length) {
+        dbQuery = dbQuery.overlaps('ai_diet_tags', filters.diet_tags)
       }
 
       // Always exclude user's allergens

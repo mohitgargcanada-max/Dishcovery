@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Search, Sparkles, PlusCircle, Bookmark, User, ChefHat } from 'lucide-react'
+import { Home, Search, Sparkles, PlusCircle, Bookmark } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 
 const links = [

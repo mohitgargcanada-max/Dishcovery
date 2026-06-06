@@ -20,9 +20,11 @@ export function useRecipes(tab = 'trending', tasteProfile = null, userAllergens 
         if (tasteProfile?.cuisines?.length) {
           query = query.in('cuisine_type', tasteProfile.cuisines)
         }
-        // Filter by user's dietary preferences (must match at least one tag)
+        // Strict diet filtering — each of user's diets must appear in recipe tags
         if (tasteProfile?.diets?.length) {
-          query = query.overlaps('ai_diet_tags', tasteProfile.diets)
+          for (const diet of tasteProfile.diets) {
+            query = query.contains('ai_diet_tags', [diet])
+          }
         }
         query = query.order('save_count', { ascending: false })
       } else {
