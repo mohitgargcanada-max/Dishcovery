@@ -11,8 +11,8 @@ async function extractDishName(title: string, anthropicKey: string): Promise<str
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 20,
-        system: 'Return only the core dish name, 1-3 words, no punctuation.',
-        messages: [{ role: 'user', content: `Extract core dish name: "${title}"` }],
+        system: 'Return 2-3 words suitable for food image search. Focus on protein and cooking method, ignore adjectives and seasonings. Examples: "Grilled Chicken", "Lamb Biryani", "Pasta Carbonara", "Fish Tacos".',
+        messages: [{ role: 'user', content: `Food image search term for: "${title}"` }],
       }),
     })
     if (!r.ok) return title
