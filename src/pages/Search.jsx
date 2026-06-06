@@ -33,10 +33,15 @@ export default function Search() {
 
       const hasKeyword = filters.keywords?.length > 0
 
-      // Keyword search across title AND description
+      // Search title, description, AND cuisine with all keywords
       if (hasKeyword) {
-        const kw = filters.keywords[0]
-        dbQuery = dbQuery.or(`title.ilike.%${kw}%,description.ilike.%${kw}%,cuisine_type.ilike.%${kw}%`)
+        const conditions = filters.keywords.map(kw =>
+          `title.ilike.%${kw}%,description.ilike.%${kw}%,cuisine_type.ilike.%${kw}%`
+        ).join(',')
+        dbQuery = dbQuery.or(conditions)
+      } else if (q.trim()) {
+        // Raw query fallback if AI parsing returns no keywords
+        dbQuery = dbQuery.or(`title.ilike.%${q.trim()}%,description.ilike.%${q.trim()}%,cuisine_type.ilike.%${q.trim()}%`)
       }
       if (filters.cuisine) {
         dbQuery = dbQuery.ilike('cuisine_type', `%${filters.cuisine}%`)

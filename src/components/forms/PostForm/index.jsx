@@ -30,23 +30,51 @@ function isSpam(text) {
   if (!text) return false
   const t = text.trim()
   if (t.length < 3) return true
-  // Repeated characters: aaaa, xxxx
-  if (/(.)\1{4,}/.test(t)) return true
-  // All special chars / numbers only
-  if (/^[^a-zA-Z]+$/.test(t)) return true
-  // Too many consecutive spaces or gibberish
-  if (/\s{3,}/.test(t)) return true
+  if (/(.)\1{4,}/.test(t)) return true          // aaaaa, xxxxx
+  if (/^[^a-zA-Z]+$/.test(t)) return true       // only numbers/symbols
+  if (/\s{3,}/.test(t)) return true              // too many spaces
+  if (/^(.{1,3})\1+$/.test(t)) return true       // repeating patterns: abcabcabc
   return false
+}
+
+function looksLikeDishName(title) {
+  const t = title.trim()
+  // Must have at least 2 words OR one word of 4+ chars
+  const words = t.split(/\s+/)
+  if (words.length < 1) return false
+  if (words.length === 1 && words[0].length < 4) return false
+  // Must contain at least one letter-only word of 3+ chars
+  if (!words.some(w => /^[a-zA-Z]{3,}$/.test(w))) return false
+  return true
+}
+
+function looksLikeDescription(desc) {
+  const t = desc.trim()
+  if (t.length < 20) return false
+  const words = t.split(/\s+/)
+  if (words.length < 5) return false  // at least 5 words
+  if (!t.includes(' ')) return false  // must have spaces
+  return true
 }
 
 function validateStep(step, data) {
   if (step === 0) {
+    // Title validation
     if (!data.title || data.title.trim().length < 3)
       return 'Please enter a recipe title (at least 3 characters)'
     if (isSpam(data.title))
-      return 'Recipe title looks invalid — please enter a real dish name'
-    if (data.description && isSpam(data.description))
-      return 'Description looks invalid — please describe your dish properly'
+      return 'Recipe title looks invalid — please enter a real dish name like "Chicken Tikka Masala"'
+    if (!looksLikeDishName(data.title))
+      return 'Title doesn\'t look like a dish name — e.g. "Creamy Mushroom Risotto"'
+
+    // Description is now mandatory
+    if (!data.description || data.description.trim().length === 0)
+      return 'Please add a description — tell people what makes your recipe special'
+    if (isSpam(data.description))
+      return 'Description looks like gibberish — please describe your dish in plain English'
+    if (!looksLikeDescription(data.description))
+      return 'Description is too short — write at least 2 sentences (20+ words) about the dish'
+
     return null
   }
   if (step === 1) {
@@ -54,10 +82,10 @@ function validateStep(step, data) {
       return 'Please add at least one ingredient'
     if (data.steps.length === 0)
       return 'Please add at least one cooking step'
-    const badIngredient = data.ingredients.find((i) => isSpam(i.item) || !i.item?.trim())
+    const badIngredient = data.ingredients.find((i) => !i.item?.trim() || isSpam(i.item))
     if (badIngredient) return 'One or more ingredients look invalid — please check them'
-    const badStep = data.steps.find((s) => isSpam(s) || !s?.trim() || s.trim().length < 5)
-    if (badStep) return 'One or more steps look too short or invalid'
+    const badStep = data.steps.find((s) => !s?.trim() || s.trim().length < 8 || isSpam(s))
+    if (badStep) return 'One or more steps are too short — describe each step clearly'
     return null
   }
   return null

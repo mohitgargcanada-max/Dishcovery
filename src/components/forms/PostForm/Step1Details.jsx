@@ -16,14 +16,20 @@ export default function Step1Details({ data, onChange }) {
       </div>
 
       <div>
-        <label className="block text-sm text-[#888880] mb-1.5">Description</label>
+        <label className="block text-sm text-[#888880] mb-1.5">
+          Description <span className="text-[#FF6B35]">*</span>
+        </label>
         <textarea
           value={data.description}
           onChange={(e) => update('description', e.target.value)}
-          placeholder="Describe your dish in 1–2 sentences..."
-          rows={2}
+          placeholder="Describe your dish in 2–3 sentences. What makes it special? What does it taste like?"
+          rows={3}
           className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg px-3 py-2.5 text-[#F5F5F0] placeholder:text-[#888880] focus:outline-none focus:border-[#FF6B35]/50 text-sm resize-none"
         />
+        <p className="text-xs text-[#888880] mt-1">
+          {data.description?.trim().split(/\s+/).filter(Boolean).length || 0} words
+          <span className="ml-1">{(data.description?.trim().split(/\s+/).filter(Boolean).length || 0) >= 5 ? '✓' : '— need at least 5'}</span>
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
